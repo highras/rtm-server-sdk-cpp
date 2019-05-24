@@ -1,1 +1,0 @@
-# RTM-Server-SDK-CPP
