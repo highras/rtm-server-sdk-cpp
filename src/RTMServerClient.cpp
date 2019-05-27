@@ -1516,7 +1516,7 @@ FPQuestPtr RTMServerClient::_getGetGroupMessageQuest(int64_t gid, bool desc, int
     qw.param("num", num);
     qw.param("begin", begin);
     qw.param("end", end);
-    qw.param("lastId", lastId);
+    qw.param("lastid", lastId);
     return qw.take();
 }
 
@@ -1578,7 +1578,7 @@ FPQuestPtr RTMServerClient::_getGetRoomMessageQuest(int64_t rid, bool desc, int1
     qw.param("num", num);
     qw.param("begin", begin);
     qw.param("end", end);
-    qw.param("lastId", lastId);
+    qw.param("lastid", lastId);
     return qw.take();
 }
 
@@ -1639,7 +1639,7 @@ FPQuestPtr RTMServerClient::_getGetBroadcastMessageQuest(bool desc, int16_t num,
     qw.param("num", num);
     qw.param("begin", begin);
     qw.param("end", end);
-    qw.param("lastId", lastId);
+    qw.param("lastid", lastId);
     return qw.take();
 }
 
@@ -1702,7 +1702,7 @@ FPQuestPtr RTMServerClient::_getGetP2PMessageQuest(int64_t uid, int64_t ouid, bo
     qw.param("num", num);
     qw.param("begin", begin);
     qw.param("end", end);
-    qw.param("lastId", lastId);
+    qw.param("lastid", lastId);
     return qw.take();
 }
 
