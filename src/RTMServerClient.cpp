@@ -14,8 +14,10 @@ RTMServerClient::RTMServerClient(int32_t pid, const string& secret, const string
     MidGenerator::init(slack_real_msec());
     _client = TCPClient::createClient(endpoint, reconnect);
     _processor.reset(new RTMProcessor(duplicateCacheSize));
-    if (_client)
+    if (_client) {
+        _client->setQuestTimeout(timeout);
         _client->setQuestProcessor(_processor);
+    }
 }
 
 RTMServerClient::~RTMServerClient()
