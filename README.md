@@ -582,7 +582,7 @@
 		* `result.token`: **(string)** 发送token
 		* `result.endpoint`: **(string)** 发送服务器地址
 
-#### 获取发送文件的token(同步)
+#### 获取Group历史消息(同步)
 * `GetGroupMessageResult getGroupMessage(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout = 0)`
     * `gid`: Group id
     * `desc`: `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
@@ -609,7 +609,7 @@
 			* GroupMessage.attrs: **(string)** 
 			* GroupMessage.mtime: **(int64_t)** 
 
-#### 获取发送文件的token(异步)
+#### 获取Group历史消息(异步)
 * `void getGroupMessage(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetGroupMessageResult result)> callback, int32_t timeout = 0)`   
     * `gid`: Group id
     * `desc`: `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
@@ -635,3 +635,446 @@
 			* GroupMessage.msg: **(string)** 
 			* GroupMessage.attrs: **(string)** 
 			* GroupMessage.mtime: **(int64_t)** 
+
+#### 获取Room历史消息(同步)
+* `GetRoomMessageResult getRoomMessage(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout = 0)`
+    * `rid`: Room id
+    * `desc`: `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
+    * `num`: 一次最多获取20条, 建议10条**
+    * `begin`: 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
+    * `end`:  结束时间戳, 毫秒, 默认`0`, 条件：`<=`
+    * `lastId`:  最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
+    * `timeout`: 超时时间(s)
+    * `GetRoomMessageResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.num`: **(int16_t)** 总数
+		* `result.lastId`: **(int64_t)** lastId
+		* `result.begin`: **(int64_t)** 
+		* `result.end`: **(int64_t)** 
+		* `result.msgs`: **(vector of RoomMessage)** 
+			* RoomMessage.id: **(int64_t)** 
+			* RoomMessage.from: **(int64_t)** 
+			* RoomMessage.mtype: **(int8_t)** 
+			* RoomMessage.mid: **(int64_t)** 
+			* RoomMessage.deleted: **(bool)** 
+			* RoomMessage.msg: **(string)** 
+			* RoomMessage.attrs: **(string)** 
+			* RoomMessage.mtime: **(int64_t)** 
+
+#### 获取Room历史消息(异步)
+* `void getRoomMessage(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetRoomMessageResult result)> callback, int32_t timeout = 0)`   
+    * `rid`: Room id
+    * `desc`: `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
+    * `num`: 一次最多获取20条, 建议10条**
+    * `begin`: 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
+    * `end`:  结束时间戳, 毫秒, 默认`0`, 条件：`<=`
+    * `lastId`:  最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
+    * `timeout`: 超时时间(s)
+    * `GetRoomMessageResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.num`: **(int16_t)** 总数
+		* `result.lastId`: **(int64_t)** lastId
+		* `result.begin`: **(int64_t)** 
+		* `result.end`: **(int64_t)** 
+		* `result.msgs`: **(vector of RoomMessage)** 
+			* RoomMessage.id: **(int64_t)** 
+			* RoomMessage.from: **(int64_t)** 
+			* RoomMessage.mtype: **(int8_t)** 
+			* RoomMessage.mid: **(int64_t)** 
+			* RoomMessage.deleted: **(bool)** 
+			* RoomMessage.msg: **(string)** 
+			* RoomMessage.attrs: **(string)** 
+			* RoomMessage.mtime: **(int64_t)** 
+			
+#### 获取Broadcast历史消息(同步)
+* `GetBroadcastMessageResult getBroadcastMessage(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout = 0)`
+    * `desc`: `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
+    * `num`: 一次最多获取20条, 建议10条**
+    * `begin`: 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
+    * `end`:  结束时间戳, 毫秒, 默认`0`, 条件：`<=`
+    * `lastId`:  最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
+    * `timeout`: 超时时间(s)
+    * `GetBroadcastMessageResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.num`: **(int16_t)** 总数
+		* `result.lastId`: **(int64_t)** lastId
+		* `result.begin`: **(int64_t)** 
+		* `result.end`: **(int64_t)** 
+		* `result.msgs`: **(vector of BroadcastMessage)** 
+			* BroadcastMessage.id: **(int64_t)** 
+			* BroadcastMessage.from: **(int64_t)** 
+			* BroadcastMessage.mtype: **(int8_t)** 
+			* BroadcastMessage.mid: **(int64_t)** 
+			* BroadcastMessage.deleted: **(bool)** 
+			* BroadcastMessage.msg: **(string)** 
+			* BroadcastMessage.attrs: **(string)** 
+			* BroadcastMessage.mtime: **(int64_t)** 
+
+#### 获取Broadcast历史消息(异步)
+* `void getBroadcastMessage(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetBroadcastMessageResult result)> callback, int32_t timeout = 0)`   
+    * `desc`: `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
+    * `num`: 一次最多获取20条, 建议10条**
+    * `begin`: 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
+    * `end`:  结束时间戳, 毫秒, 默认`0`, 条件：`<=`
+    * `lastId`:  最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
+    * `timeout`: 超时时间(s)
+    * `GetBroadcastMessageResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.num`: **(int16_t)** 总数
+		* `result.lastId`: **(int64_t)** lastId
+		* `result.begin`: **(int64_t)** 
+		* `result.end`: **(int64_t)** 
+		* `result.msgs`: **(vector of BroadcastMessage)** 
+			* BroadcastMessage.id: **(int64_t)** 
+			* BroadcastMessage.from: **(int64_t)** 
+			* BroadcastMessage.mtype: **(int8_t)** 
+			* BroadcastMessage.mid: **(int64_t)** 
+			* BroadcastMessage.deleted: **(bool)** 
+			* BroadcastMessage.msg: **(string)** 
+			* BroadcastMessage.attrs: **(string)** 
+			* BroadcastMessage.mtime: **(int64_t)** 
+			
+#### 获取P2P历史消息(同步)
+* `GetP2PMessageResult getP2PMessage(int64_t uid, int64_t ouid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout = 0)`
+    * `uid`: 用户id
+    * `ouid`: 对方用户id
+    * `desc`: `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
+    * `num`: 一次最多获取20条, 建议10条**
+    * `begin`: 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
+    * `end`:  结束时间戳, 毫秒, 默认`0`, 条件：`<=`
+    * `lastId`:  最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
+    * `timeout`: 超时时间(s)
+    * `GetP2PMessageResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.num`: **(int16_t)** 总数
+		* `result.lastId`: **(int64_t)** lastId
+		* `result.begin`: **(int64_t)** 
+		* `result.end`: **(int64_t)** 
+		* `result.msgs`: **(vector of P2PMessage)** 
+			* P2PMessage.id: **(int64_t)** 
+			* P2PMessage.direction: **(int8_t)** 
+			* P2PMessage.mtype: **(int8_t)** 
+			* P2PMessage.mid: **(int64_t)** 
+			* P2PMessage.deleted: **(bool)** 
+			* P2PMessage.msg: **(string)** 
+			* P2PMessage.attrs: **(string)** 
+			* P2PMessage.mtime: **(int64_t)** 
+
+#### 获取P2P历史消息(异步)
+* `void getP2PMessage(int64_t uid, int64_t ouid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetP2PMessageResult result)> callback, int32_t timeout = 0)`   
+    * `uid`: 用户id
+    * `ouid`: 对方用户id
+    * `desc`: `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
+    * `num`: 一次最多获取20条, 建议10条**
+    * `begin`: 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
+    * `end`:  结束时间戳, 毫秒, 默认`0`, 条件：`<=`
+    * `lastId`:  最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
+    * `timeout`: 超时时间(s)
+    * `GetP2PMessageResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.num`: **(int16_t)** 总数
+		* `result.lastId`: **(int64_t)** lastId
+		* `result.begin`: **(int64_t)** 
+		* `result.end`: **(int64_t)** 
+		* `result.msgs`: **(vector of P2PMessage)** 
+			* P2PMessage.id: **(int64_t)** 
+			* P2PMessage.direction: **(int8_t)** 
+			* P2PMessage.mtype: **(int8_t)** 
+			* P2PMessage.mid: **(int64_t)** 
+			* P2PMessage.deleted: **(bool)** 
+			* P2PMessage.msg: **(string)** 
+			* P2PMessage.attrs: **(string)** 
+			* P2PMessage.mtime: **(int64_t)** 
+			
+#### 添加Room成员(同步)
+* `QuestResult addRoomMember(int64_t rid, int64_t uid, int32_t timeout = 0)`
+    * `rid`: 房间id
+    * `uid`: 用户id
+    * `timeout`: 超时时间(s)
+
+#### 添加Room成员(异步)
+* `void addRoomMember(int64_t rid, int64_t uid, std::function<void (QuestResult result)> callback, int32_t timeout = 0)`   
+    * `rid`: 房间id
+    * `uid`: 用户id
+    * `timeout`: 超时时间(s)
+    
+#### 删除Room成员(同步)
+* `QuestResult deleteRoomMember(int64_t rid, int64_t uid, int32_t timeout = 0)`
+    * `rid`: 房间id
+    * `uid`: 用户id
+    * `timeout`: 超时时间(s)
+
+#### 删除Room成员(异步)
+* `void deleteRoomMember(int64_t rid, int64_t uid, std::function<void (QuestResult result)> callback, int32_t timeout = 0)` 
+    * `rid`: 房间id
+    * `uid`: 用户id
+    * `timeout`: 超时时间(s)
+    
+####  添加事件/消息监听(同步)
+* `QuestResult addListen(const set<int64_t>& gids, const set<int64_t>& rids, bool p2p, const set<string>& events, int32_t timeout = 0)`
+    * `gids`: 多个Group id
+    * `rids`:  多个Room id
+    * `p2p`:  P2P消息
+    * `events`: 多个事件名称, 请参考 `RTMConfig.SERVER_EVENT` 成员
+    * `timeout`: 超时时间(s)
+
+#### 添加事件/消息监听(异步)
+* `void addListen(const set<int64_t>& gids, const set<int64_t>& rids, bool p2p, const set<string>& events, std::function<void (QuestResult result)> callback, int32_t timeout = 0)` 
+    * `gids`: 多个Group id
+    * `rids`:  多个Room id
+    * `p2p`:  P2P消息
+    * `events`: 多个事件名称, 请参考 `RTMConfig.SERVER_EVENT` 成员
+    * `timeout`: 超时时间(s)
+    
+####  删除事件/消息监听(同步)
+* `QuestResult removeListen(const set<int64_t>& gids, const set<int64_t>& rids, bool p2p, const set<string>& events, int32_t timeout = 0)`
+    * `gids`: 多个Group id
+    * `rids`:  多个Room id
+    * `p2p`:  P2P消息
+    * `events`: 多个事件名称, 请参考 `RTMConfig.SERVER_EVENT` 成员
+    * `timeout`: 超时时间(s)
+
+#### 删除事件/消息监听(异步)
+* `void removeListen(const set<int64_t>& gids, const set<int64_t>& rids, bool p2p, const set<string>& events, std::function<void (QuestResult result)> callback, int32_t timeout = 0)` 
+    * `gids`: 多个Group id
+    * `rids`:  多个Room id
+    * `p2p`:  P2P消息
+    * `events`: 多个事件名称, 请参考 `RTMConfig.SERVER_EVENT` 成员
+    * `timeout`: 超时时间(s)
+    
+#### 更新事件/消息监听(同步)
+* `QuestResult setListen(const set<int64_t>& gids, const set<int64_t>& rids, bool p2p, const set<string>& events, bool all, int32_t timeout = 0)`
+    * `gids`: 多个Group id
+    * `rids`:  多个Room id
+    * `p2p`:  P2P消息
+    * `events`: 多个事件名称, 请参考 `RTMConfig.SERVER_EVENT` 成员
+    * `all`: `true`: 监听所有 `事件` / `消息`, `false`: 取消所有 `事件` / `消息` 监听
+    * `timeout`: 超时时间(s)
+
+#### 更新事件/消息监听(异步)
+* `void setListen(const set<int64_t>& gids, const set<int64_t>& rids, bool p2p, const set<string>& events, bool all, std::function<void (QuestResult result)> callback, int32_t timeout = 0)` 
+    * `gids`: 多个Group id
+    * `rids`:  多个Room id
+    * `p2p`:  P2P消息
+    * `events`: 多个事件名称, 请参考 `RTMConfig.SERVER_EVENT` 成员
+    * `all`: `true`: 监听所有 `事件` / `消息`, `false`: 取消所有 `事件` / `消息` 监听
+    * `timeout`: 超时时间(s)
+    
+#### 添加设备, 应用信息(同步)
+* `QuestResult addDevice(int64_t uid, const string& appType, const string& deviceToken, int32_t timeout = 0)`
+    * `uid`: 用户id
+    * `appType`: 应用信息
+    * `deviceToken`:  设备token
+    * `timeout`: 超时时间(s)
+
+#### 添加设备, 应用信息(异步)
+* `void addDevice(int64_t uid, const string& appType, const string& deviceToken, std::function<void (QuestResult result)> callback, int32_t timeout = 0)` 
+    * `uid`: 用户id
+    * `appType`: 应用信息
+    * `deviceToken`:  设备token
+    * `timeout`: 超时时间(s)
+    
+#### 移除设备(同步)
+* `QuestResult removeDevice(int64_t uid, const string& deviceToken, int32_t timeout = 0)`
+    * `uid`: 用户id
+    * `deviceToken`:  设备token
+    * `timeout`: 超时时间(s)
+
+#### 移除设备(异步)
+* `void removeDevice(int64_t uid, const string& deviceToken, std::function<void (QuestResult result)> callback, int32_t timeout = 0)` 
+    * `uid`: 用户id
+    * `deviceToken`:  设备token
+    * `timeout`: 超时时间(s)
+    
+#### 删除消息(同步)
+* `QuestResult deleteMessage(int64_t mid, int64_t from, int64_t xid, int8_t type, int32_t timeout = 0)`
+    * `mid`: 消息id
+    * `from`: 发送方id
+    * `xid`: 接收放id, `rid/gid/to`
+    * `type`: 消息发送分类 `1:P2P, 2:Group, 3:Room, 4:Broadcast`
+    * `timeout`: 超时时间(s)
+
+#### 删除消息(异步)
+* `void deleteMessage(int64_t mid, int64_t from, int64_t xid, int8_t type, std::function<void (QuestResult result)> callback, int32_t timeout = 0)` 
+    * `mid`: 消息id
+    * `from`: 发送方id
+    * `xid`: 接收放id, `rid/gid/to`
+    * `type`: 消息发送分类 `1:P2P, 2:Group, 3:Room, 4:Broadcast`
+    * `timeout`: 超时时间(s)
+    
+#### 踢掉一个用户或者一个链接(同步)
+* `QuestResult kickout(int64_t uid, const string& ce, int32_t timeout = 0)`
+    * `uid`: 用户 id
+    * `ce`: 踢掉`ce`对应链接, 多用户登录情况
+    * `timeout`: 超时时间(s)
+
+#### 踢掉一个用户或者一个链接(异步)
+* `void kickout(int64_t uid, const string& ce, std::function<void (QuestResult result)> callback, int32_t timeout = 0)` 
+    * `uid`: 用户 id
+    * `ce`: 踢掉`ce`对应链接, 多用户登录情况
+    * `timeout`: 超时时间(s)
+    
+#### 读取文件到string
+* `bool loadFile(const string& filePath, string& fileData)`
+    * `filePath`: 文件path
+
+#### 发送文件(同步)
+* `SendFileResult sendFile(int64_t from, int64_t to, int8_t mtype, const string& fileData, int64_t mid = 0, int32_t timeout = 0)`
+    * `from`: 发送方 id
+    * `to`: 接收方 uid
+    * `mtype`: 文件类型
+    * `fileData`: 文件内容
+    * `mid`: 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `timeout`: 超时时间(s)
+    * `SendFileResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.mid`: **(int64_t)** 消息id，当为正常时有效
+		* `result.mtime`: **(int64_t)** 毫秒时间戳，当为正常时有效
+
+#### 发送文件(异步)
+* `void sendFile(int64_t from, int64_t to, int8_t mtype, const string& fileData, std::function<void (SendFileResult result)> callback, int64_t mid = 0, int32_t timeout = 0)` 
+    * `from`: 发送方 id
+    * `to`: 接收方 uid
+    * `mtype`: 文件类型
+    * `fileData`: 文件内容
+    * `mid`: 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `timeout`: 超时时间(s)
+    * `SendFileResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.mid`: **(int64_t)** 消息id，当为正常时有效
+		* `result.mtime`: **(int64_t)** 毫秒时间戳，当为正常时有效
+
+#### 给多人发送文件(同步)
+* `SendFileResult sendFiles(int64_t from, const set<int64_t>& tos, int8_t mtype, const string& fileData, int64_t mid = 0, int32_t timeout = 0)`
+    * `from`: 发送方 id
+    * `tos`: 接收方uid list
+    * `mtype`: 文件类型
+    * `fileData`: 文件内容
+    * `mid`: 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `timeout`: 超时时间(s)
+    * `SendFileResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.mid`: **(int64_t)** 消息id，当为正常时有效
+		* `result.mtime`: **(int64_t)** 毫秒时间戳，当为正常时有效
+
+#### 给多人发送文件(异步)
+* `void sendFiles(int64_t from, const set<int64_t>& tos, int8_t mtype, const string& fileData, std::function<void (SendFileResult result)> callback, int64_t mid = 0, int32_t timeout = 0)` 
+    * `from`: 发送方 id
+    * `tos`: 接收方uid list
+    * `mtype`: 文件类型
+    * `fileData`: 文件内容
+    * `mid`: 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `timeout`: 超时时间(s)
+    * `SendFileResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.mid`: **(int64_t)** 消息id，当为正常时有效
+		* `result.mtime`: **(int64_t)** 毫秒时间戳，当为正常时有效
+		
+#### 给Group发送文件(同步)
+* `SendFileResult sendGroupFile(int64_t from, int64_t gid, int8_t mtype, const string& fileData, int64_t mid = 0, int32_t timeout = 0)`
+    * `from`: 发送方 id
+    * `gid`: 组id
+    * `mtype`: 文件类型
+    * `fileData`: 文件内容
+    * `mid`: 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `timeout`: 超时时间(s)
+    * `SendFileResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.mid`: **(int64_t)** 消息id，当为正常时有效
+		* `result.mtime`: **(int64_t)** 毫秒时间戳，当为正常时有效
+
+#### 给Group发送文件(异步)
+* `void sendGroupFile(int64_t from, int64_t gid, int8_t mtype, const string& fileData, std::function<void (SendFileResult result)> callback, int64_t mid = 0, int32_t timeout = 0)` 
+    * `from`: 发送方 id
+    * `gid`: 组id
+    * `mtype`: 文件类型
+    * `fileData`: 文件内容
+    * `mid`: 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `timeout`: 超时时间(s)
+    * `SendFileResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.mid`: **(int64_t)** 消息id，当为正常时有效
+		* `result.mtime`: **(int64_t)** 毫秒时间戳，当为正常时有效
+		
+#### 给Room发送文件(同步)
+* `SendFileResult sendRoomFile(int64_t from, int64_t rid, int8_t mtype, const string& fileData, int64_t mid, int32_t timeout = 0)`
+    * `from`: 发送方 id
+    * `rid`: 房间id
+    * `mtype`: 文件类型
+    * `fileData`: 文件内容
+    * `mid`: 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `timeout`: 超时时间(s)
+    * `SendFileResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.mid`: **(int64_t)** 消息id，当为正常时有效
+		* `result.mtime`: **(int64_t)** 毫秒时间戳，当为正常时有效
+
+#### 给Room发送文件(异步)
+* `void sendRoomFile(int64_t from, int64_t rid, int8_t mtype, const string& fileData, std::function<void (SendFileResult result)> callback, int64_t mid = 0, int32_t timeout = 0)` 
+    * `from`: 发送方 id
+    * `rid`: 组id
+    * `mtype`: 文件类型
+    * `fileData`: 文件内容
+    * `mid`: 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `timeout`: 超时时间(s)
+    * `SendFileResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.mid`: **(int64_t)** 消息id，当为正常时有效
+		* `result.mtime`: **(int64_t)** 毫秒时间戳，当为正常时有效
+		
+#### 给Group发送文件(同步)
+* `SendFileResult broadcastFile(int64_t from, int8_t mtype, const string& fileData, int64_t mid = 0, int32_t timeout = 0)`
+    * `from`: 发送方 id
+    * `mtype`: 文件类型
+    * `fileData`: 文件内容
+    * `mid`: 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `timeout`: 超时时间(s)
+    * `SendFileResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.mid`: **(int64_t)** 消息id，当为正常时有效
+		* `result.mtime`: **(int64_t)** 毫秒时间戳，当为正常时有效
+
+#### 给Group发送文件(异步)
+* `void broadcastFile(int64_t from, int8_t mtype, const string& fileData, std::function<void (SendFileResult result)> callback, int64_t mid = 0, int32_t timeout = 0)` 
+    * `from`: 发送方 id
+    * `mtype`: 文件类型
+    * `fileData`: 文件内容
+    * `mid`: 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `timeout`: 超时时间(s)
+    * `SendFileResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.mid`: **(int64_t)** 消息id，当为正常时有效
+		* `result.mtime`: **(int64_t)** 毫秒时间戳，当为正常时有效
+
