@@ -1050,7 +1050,7 @@
 		* `result.mid`: **(int64_t)** 消息id，当为正常时有效
 		* `result.mtime`: **(int64_t)** 毫秒时间戳，当为正常时有效
 		
-#### 给Group发送文件(同步)
+#### 广播文件(同步)
 * `SendFileResult broadcastFile(int64_t from, int8_t mtype, const string& fileData, int64_t mid = 0, int32_t timeout = 0)`
     * `from`: 发送方 id
     * `mtype`: 文件类型
@@ -1064,7 +1064,7 @@
 		* `result.mid`: **(int64_t)** 消息id，当为正常时有效
 		* `result.mtime`: **(int64_t)** 毫秒时间戳，当为正常时有效
 
-#### 给Group发送文件(异步)
+#### 广播文件(异步)
 * `void broadcastFile(int64_t from, int8_t mtype, const string& fileData, std::function<void (SendFileResult result)> callback, int64_t mid = 0, int32_t timeout = 0)` 
     * `from`: 发送方 id
     * `mtype`: 文件类型
