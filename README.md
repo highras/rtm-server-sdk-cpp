@@ -591,25 +591,47 @@
     * `end`:  结束时间戳, 毫秒, 默认`0`, 条件：`<=`
     * `lastId`:  最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
     * `timeout`: 超时时间(s)
-    * `FileTokenResult`: 返回值
+    * `GetGroupMessageResult`: 返回值
 		* `result.isError()`: **(bool)** 是否为错误
 		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
 		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
-		* `result.token`: **(string)** 发送token
-		* `result.endpoint`: **(string)** 发送服务器地址
+		* `result.num`: **(int16_t)** 总数
+		* `result.lastId`: **(int64_t)** lastId
+		* `result.begin`: **(int64_t)** 
+		* `result.end`: **(int64_t)** 
+		* `result.msgs`: **(vector of GroupMessage)** 
+			* GroupMessage.id: **(int64_t)** 
+			* GroupMessage.from: **(int64_t)** 
+			* GroupMessage.mtype: **(int8_t)** 
+			* GroupMessage.mid: **(int64_t)** 
+			* GroupMessage.deleted: **(bool)** 
+			* GroupMessage.msg: **(string)** 
+			* GroupMessage.attrs: **(string)** 
+			* GroupMessage.mtime: **(int64_t)** 
 
 #### 获取发送文件的token(异步)
 * `void getGroupMessage(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetGroupMessageResult result)> callback, int32_t timeout = 0)`   
-    * `from`:  发送方 id
-    * `cmd`: 文件发送方式`sendfile | sendfiles | sendroomfile | sendgroupfile | broadcastfile`
-    * `tos`: 接收方 uids
-    * `to`: 接收方 uid
-    * `rid`:  Room id
-    * `gid`:  Group id
+    * `gid`: Group id
+    * `desc`: `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
+    * `num`: 一次最多获取20条, 建议10条**
+    * `begin`: 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
+    * `end`:  结束时间戳, 毫秒, 默认`0`, 条件：`<=`
+    * `lastId`:  最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
     * `timeout`: 超时时间(s)
-    * `FileTokenResult`: 返回值
+    * `GetGroupMessageResult`: 返回值
 		* `result.isError()`: **(bool)** 是否为错误
 		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
 		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
-		* `result.token`: **(string)** 发送token
-		* `result.endpoint`: **(string)** 发送服务器地址
+		* `result.num`: **(int16_t)** 总数
+		* `result.lastId`: **(int64_t)** lastId
+		* `result.begin`: **(int64_t)** 
+		* `result.end`: **(int64_t)** 
+		* `result.msgs`: **(vector of GroupMessage)** 
+			* GroupMessage.id: **(int64_t)** 
+			* GroupMessage.from: **(int64_t)** 
+			* GroupMessage.mtype: **(int8_t)** 
+			* GroupMessage.mid: **(int64_t)** 
+			* GroupMessage.deleted: **(bool)** 
+			* GroupMessage.msg: **(string)** 
+			* GroupMessage.attrs: **(string)** 
+			* GroupMessage.mtime: **(int64_t)** 
