@@ -1,5 +1,5 @@
 
-FPNN_RELEASE_PATH = ../fpnn-sdk-cpp/release
+FPNN_RELEASE_INCLUDE_PATH = ../fpnn-sdk-cpp/release/include
 
 OBJS_C = 
 
@@ -10,7 +10,7 @@ LIBRTM_A = librtm.a
 
 CFLAGS +=
 CXXFLAGS +=
-CPPFLAGS += -I$(FPNN_RELEASE_PATH)/include/fpnn -I$(FPNN_RELEASE_PATH)/include/fpnn/base -I$(FPNN_RELEASE_PATH)/include/fpnn/proto -I$(FPNN_RELEASE_PATH)/include/fpnn/proto/msgpack -I$(FPNN_RELEASE_PATH)/include/fpnn/proto/rapidjson -Isrc/base
+CPPFLAGS += -I$(FPNN_RELEASE_INCLUDE_PATH)/fpnn -I$(FPNN_RELEASE_INCLUDE_PATH)/fpnn/base -I$(FPNN_RELEASE_INCLUDE_PATH)/fpnn/proto -I$(FPNN_RELEASE_INCLUDE_PATH)/fpnn/proto/msgpack -I$(FPNN_RELEASE_INCLUDE_PATH)/fpnn/proto/rapidjson -Isrc/base
 
 all: $(LIBRTM_A)
 
