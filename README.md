@@ -48,15 +48,15 @@
   client->setServerMonitor(make_shared<MyMonitor>());
   
   // 添加监听类型  
-  QuestResult addListenResult = client->addListen({}, {}, true, {"login"});
+  QuestResult result = client->addListen({}, {}, true, {"login"});
   if (addListenResult.isError()) {
-      cout << addListenResult.errorCode << " " << addListenResult.errorInfo << endl;
+      cout << result.errorCode << " " << result.errorInfo << endl;
   } else {
       cout << "ok" << endl;
   }
   
   // 发送P2P消息（同步）
-  SendMessageResult sendMessageResult = client->sendMessage(1, 123, 51, "test", "");
+  SendMessageResult result = client->sendMessage(1, 123, 51, "test", "");
   if (result.isError()) {
       cout << result.errorCode << " " << result.errorInfo << endl;
   } else {
@@ -77,3 +77,45 @@
 
 ### API
 
+#### RTMServerClient构造函数
+* `RTMServerClient(int32_t pid, const string& secret, const string& endpoint, bool reconnect, int32_t timeout, int32_t duplicateCacheSize = 100000)` 
+    * `pid`: 应用编号, RTM提供
+    * `secret`: 应用密钥, RTM提供
+    * `endpoint`: 服务端网关地址
+    * `reconnect`: 是否重连
+    * `timeout`: 请求超时时间(s)
+    * `duplicateCacheSize`: mid去重LRUMAP大小
+   
+#### 设置全局请求超时时间  
+* `void setQuestTimeout(int seconds)`  
+
+#### 设置是否自动重连
+* `void setAutoReconnect(bool autoReconnect)` 
+
+#### 设置服务端监听
+* `void setServerMonitor(shared_ptr<RTMServerMonitor> serverMonitor)` 
+
+#### 配置链接加密 请参考 [FPNN Client Advanced Tutorial](https://github.com/highras/fpnn/blob/master/doc/zh-cn/fpnn-client-advanced-tutorial.md#-%E5%8A%A0%E5%AF%86%E9%93%BE%E6%8E%A5)
+* `bool enableEncryptorByDerData(const string &derData, bool packageMode = true, bool reinforce = false)`
+* `bool enableEncryptorByPemData(const string &PemData, bool packageMode = true, bool reinforce = false)`
+* `bool enableEncryptorByDerFile(const char *derFilePath, bool packageMode = true, bool reinforce = false)`
+* `bool enableEncryptorByPemFile(const char *pemFilePath, bool packageMode = true, bool reinforce = false)`
+* `void enableEncryptor(const string& curve, const string& peerPublicKey, bool packageMode = true, bool reinforce = false)`
+
+#### 发送P2P消息(同步)
+* `SendMessageResult sendMessage(int64_t from, int64_t to, int8_t mtype, const string& message, const string& attrs, int64_t mid = 0, int32_t timeout = 0)`
+    * `from`: 发送方 id
+    * `to`: 接收方uid
+    * `mtype`: 消息类型
+    * `message`: 消息内容
+    * `attrs`: 消息附加信息, 没有可传`""`
+    * `mid`: 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `timeout`: 超时时间(s)
+    
+
+#### 发送P2P消息(同步)
+* `void sendMessage(int64_t from, int64_t to, int8_t mtype, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid = 0, int32_t timeout = 0)`
+    
+    
+    
+    
