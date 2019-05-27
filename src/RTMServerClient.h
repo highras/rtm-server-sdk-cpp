@@ -72,7 +72,7 @@ namespace rtm
         QuestResult deleteGroup(int64_t gid, int32_t timeout = 0);
         void deleteGroup(int64_t gid, std::function<void (QuestResult result)> callback, int32_t timeout = 0);
         GetGroupMembersResult getGroupMembers(int64_t gid, int32_t timeout = 0);
-        void getFriends(int64_t uid, std::function<void (GetGroupMembersResult result)> callback, int32_t timeout = 0);
+        void getGroupMembers(int64_t uid, std::function<void (GetGroupMembersResult result)> callback, int32_t timeout = 0);
         IsGroupMemberResult isGroupMember(int64_t gid, int64_t uid, int32_t timeout = 0);
         void isGroupMember(int64_t gid, int64_t uid, std::function<void (IsGroupMemberResult result)> callback, int32_t timeout = 0);
         GetUserGroupsResult getUserGroups(int64_t uid, int32_t timeout = 0);

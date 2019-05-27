@@ -802,7 +802,7 @@ GetGroupMembersResult RTMServerClient::getGroupMembers(int64_t gid, int32_t time
     return result;
 }
 
-void RTMServerClient::getFriends(int64_t gid, std::function<void (GetGroupMembersResult result)> callback, int32_t timeout)
+void RTMServerClient::getGroupMembers(int64_t gid, std::function<void (GetGroupMembersResult result)> callback, int32_t timeout)
 {
     FPQuestPtr quest = _getGetGroupMembersQuest(gid);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
