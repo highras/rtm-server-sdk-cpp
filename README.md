@@ -109,11 +109,16 @@
     * `mtype`: 消息类型
     * `message`: 消息内容
     * `attrs`: 消息附加信息, 没有可传`""`
-    * `mid`: 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `mid`: 消息id, 用于过滤重复消息, 非重发时为`0`
     * `timeout`: 超时时间(s)
+    * `SendMessageResult`: 返回值
+		* `result.isError()`: 是否为错误
+		* `result.errorCode`: 错误码，当为错误时有效
+		* `result.errorInfo`: 错误描述，当为错误时有效
+		* `result.mid`: 消息id，当为正常时有效
+		* `result.mtime`: 毫秒时间戳，当为正常时有效
     
-
-#### 发送P2P消息(同步)
+#### 发送P2P消息(异步)
 * `void sendMessage(int64_t from, int64_t to, int8_t mtype, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid = 0, int32_t timeout = 0)`
     
     
