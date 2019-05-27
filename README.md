@@ -49,7 +49,7 @@
   
   // 添加监听类型  
   QuestResult result = client->addListen({}, {}, true, {"login"});
-  if (addListenResult.isError()) {
+  if (result.isError()) {
       cout << result.errorCode << " " << result.errorInfo << endl;
   } else {
       cout << "ok" << endl;
