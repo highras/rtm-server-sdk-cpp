@@ -13,7 +13,6 @@ fi
 destDir=${TARGET_DIR}/include
 mkdir -p $destDir
 cp -f src/*.h $destDir
-cp -f src/base/*.h $destDir
 
 destDir=${TARGET_DIR}/lib
 mkdir -p $destDir

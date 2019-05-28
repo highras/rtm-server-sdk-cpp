@@ -3,14 +3,14 @@ FPNN_RELEASE_INCLUDE_PATH = ../fpnn-sdk-cpp/release/include
 
 OBJS_C = 
 
-OBJS_CXX = src/RTMServerClient.o  src/RTMProcessor.o src/base/bit.o src/base/obpool.o src/base/jenkins.o src/base/hashint.o src/base/MidGenerator.o
+OBJS_CXX = src/RTMServerClient.o  src/RTMProcessor.o
 
 # Static 
 LIBRTM_A = librtm.a
 
 CFLAGS +=
 CXXFLAGS +=
-CPPFLAGS += -I$(FPNN_RELEASE_INCLUDE_PATH)/fpnn -I$(FPNN_RELEASE_INCLUDE_PATH)/fpnn/base -I$(FPNN_RELEASE_INCLUDE_PATH)/fpnn/proto -I$(FPNN_RELEASE_INCLUDE_PATH)/fpnn/proto/msgpack -I$(FPNN_RELEASE_INCLUDE_PATH)/fpnn/proto/rapidjson -Isrc/base
+CPPFLAGS += -I$(FPNN_RELEASE_INCLUDE_PATH)/fpnn -I$(FPNN_RELEASE_INCLUDE_PATH)/fpnn/base -I$(FPNN_RELEASE_INCLUDE_PATH)/fpnn/proto -I$(FPNN_RELEASE_INCLUDE_PATH)/fpnn/proto/msgpack -I$(FPNN_RELEASE_INCLUDE_PATH)/fpnn/proto/rapidjson
 
 all: $(LIBRTM_A)
 
