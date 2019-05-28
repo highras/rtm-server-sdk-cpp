@@ -1,7 +1,7 @@
 
 EXES_DEMO_EXAMPLE = demo
 
-FPNN_RELEASE_DIR = ../../../infra-fpnn-sdk/C++/release
+FPNN_RELEASE_DIR = ../../fpnn-sdk-cpp/release
 RTM_RELEASE_DIR = ../release
 
 FPNN_INCLUDE_DIR = $(FPNN_RELEASE_DIR)/include/fpnn
