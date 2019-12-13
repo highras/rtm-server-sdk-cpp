@@ -2,11 +2,11 @@
 #define RTM_SERVER_MONITOR_H
 #include "fpnn.h"
 
-using namespace std;
-using namespace fpnn;
-
 namespace rtm 
 {
+    using namespace std;
+    using namespace fpnn;
+
     class RTMServerMonitor
     {
         public:

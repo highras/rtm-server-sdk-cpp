@@ -5,11 +5,10 @@
 #include "LruHashMap.h"
 #include "RTMServerMonitor.h"
 
-using namespace std;
-using namespace fpnn;
-
 namespace rtm 
 {
+    using namespace std;
+    using namespace fpnn;
 
     enum MessageType {
         P2PMessage = 0,

@@ -2,10 +2,10 @@
 #define Quest_Result_H
 #include <vector>
 
-using namespace std;
-
 namespace rtm
 {
+    using namespace std;
+
 	struct QuestResult
     {
         int32_t errorCode;

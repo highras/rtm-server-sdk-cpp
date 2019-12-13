@@ -5,11 +5,10 @@
 #include "RTMServerMonitor.h"
 #include "QuestResult.h"
 
-using namespace std;
-using namespace fpnn;
-
 namespace rtm 
 {
+    using namespace std;
+    using namespace fpnn;
 
     struct FileTokenInfo
     {
