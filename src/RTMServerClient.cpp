@@ -84,23 +84,25 @@ string RTMServerClient::_calcMD5(const string& content)
     return string(hexstr);
 }
 
-void RTMServerClient::_makeSignAndSalt(string& sign, int64_t& salt)
+void RTMServerClient::_makeSignAndSalt(int32_t ts, const string& cmd, string& sign, int64_t& salt)
 {
     salt = MidGenerator::genMid();
-    string content = to_string(_pid) + ":" + _secret + ":" + to_string(salt);
+    string content = to_string(_pid) + ":" + _secret + ":" + to_string(salt) + ":" + cmd + ":" + to_string(ts);
     sign = _calcMD5(content); 
 }
 
 FPQuestPtr RTMServerClient::_getSendMessageQuest(int64_t from, int64_t to, int8_t mtype, const string& message, const string& attrs, int64_t& mid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "sendmsg", sign, salt);
 
-    FPQWriter qw(9, "sendmsg");
+    FPQWriter qw(10, "sendmsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("mtype", mtype);
     qw.param("from", from);
     qw.param("to", to);
@@ -128,6 +130,120 @@ bool RTMServerClient::_checkAnswerError(FPAnswerPtr answer, QuestResult& result,
         return true; 
     }
     return false;
+}
+
+SendMessageResult RTMServerClient::sendChat(int64_t from, int64_t to, const string& message, const string& attrs, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendMessageQuest(from, to, TextChatMType, message, attrs, mid);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    SendMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.mtime = ar.getInt("mtime");
+        result.mid = mid;
+    }
+    return result;
+}
+
+void RTMServerClient::sendChat(int64_t from, int64_t to, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendMessageQuest(from, to, TextChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
+        SendMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.mtime = ar.getInt("mtime");
+            result.mid = mid;
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        SendMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+SendMessageResult RTMServerClient::sendAudio(int64_t from, int64_t to, const string& message, const string& attrs, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendMessageQuest(from, to, AudioChatMType, message, attrs, mid);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    SendMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.mtime = ar.getInt("mtime");
+        result.mid = mid;
+    }
+    return result;
+}
+
+void RTMServerClient::sendAudio(int64_t from, int64_t to, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendMessageQuest(from, to, AudioChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
+        SendMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.mtime = ar.getInt("mtime");
+            result.mid = mid;
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        SendMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+SendMessageResult RTMServerClient::sendCmd(int64_t from, int64_t to, const string& message, const string& attrs, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendMessageQuest(from, to, CmdChatMType, message, attrs, mid);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    SendMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.mtime = ar.getInt("mtime");
+        result.mid = mid;
+    }
+    return result;
+}
+
+void RTMServerClient::sendCmd(int64_t from, int64_t to, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendMessageQuest(from, to, CmdChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
+        SendMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.mtime = ar.getInt("mtime");
+            result.mid = mid;
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        SendMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
 }
 
 SendMessageResult RTMServerClient::sendMessage(int64_t from, int64_t to, int8_t mtype, const string& message, const string& attrs, int64_t mid, int32_t timeout)
@@ -170,14 +286,16 @@ void RTMServerClient::sendMessage(int64_t from, int64_t to, int8_t mtype, const 
 
 FPQuestPtr RTMServerClient::_getSendMessagesQuest(int64_t from, const set<int64_t>& tos, int8_t mtype, const string& message, const string& attrs, int64_t& mid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "sendmsgs", sign, salt);
 
-    FPQWriter qw(9, "sendmsgs");
+    FPQWriter qw(10, "sendmsgs");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("mtype", mtype);
     qw.param("from", from);
     qw.param("tos", tos);
@@ -187,6 +305,120 @@ FPQuestPtr RTMServerClient::_getSendMessagesQuest(int64_t from, const set<int64_
     qw.param("msg", message);
     qw.param("attrs", attrs);
     return qw.take();
+}
+
+SendMessageResult RTMServerClient::sendChats(int64_t from, const set<int64_t>& tos, const string& message, const string& attrs, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendMessagesQuest(from, tos, TextChatMType, message, attrs, mid);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    SendMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.mtime = ar.getInt("mtime");
+        result.mid = mid;
+    }
+    return result;
+}
+
+void RTMServerClient::sendChats(int64_t from, const set<int64_t>& tos, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendMessagesQuest(from, tos, TextChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
+        SendMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.mtime = ar.getInt("mtime");
+            result.mid = mid;
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        SendMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+SendMessageResult RTMServerClient::sendAudios(int64_t from, const set<int64_t>& tos, const string& message, const string& attrs, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendMessagesQuest(from, tos, AudioChatMType, message, attrs, mid);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    SendMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.mtime = ar.getInt("mtime");
+        result.mid = mid;
+    }
+    return result;
+}
+
+void RTMServerClient::sendAudios(int64_t from, const set<int64_t>& tos, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendMessagesQuest(from, tos, AudioChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
+        SendMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.mtime = ar.getInt("mtime");
+            result.mid = mid;
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        SendMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+SendMessageResult RTMServerClient::sendCmds(int64_t from, const set<int64_t>& tos, const string& message, const string& attrs, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendMessagesQuest(from, tos, CmdChatMType, message, attrs, mid);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    SendMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.mtime = ar.getInt("mtime");
+        result.mid = mid;
+    }
+    return result;
+}
+
+void RTMServerClient::sendCmds(int64_t from, const set<int64_t>& tos, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendMessagesQuest(from, tos, CmdChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
+        SendMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.mtime = ar.getInt("mtime");
+            result.mid = mid;
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        SendMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
 }
 
 SendMessageResult RTMServerClient::sendMessages(int64_t from, const set<int64_t>& tos, int8_t mtype, const string& message, const string& attrs, int64_t mid, int32_t timeout)
@@ -229,14 +461,16 @@ void RTMServerClient::sendMessages(int64_t from, const set<int64_t>& tos, int8_t
 
 FPQuestPtr RTMServerClient::_getSendGroupMessageQuest(int64_t from, int64_t gid, int8_t mtype, const string& message, const string& attrs, int64_t& mid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "sendgroupmsg", sign, salt);
 
-    FPQWriter qw(9, "sendgroupmsg");
+    FPQWriter qw(10, "sendgroupmsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("mtype", mtype);
     qw.param("from", from);
     qw.param("gid", gid);
@@ -286,16 +520,132 @@ void RTMServerClient::sendGroupMessage(int64_t from, int64_t gid, int8_t mtype, 
     }
 }
 
+SendMessageResult RTMServerClient::sendGroupChat(int64_t from, int64_t gid, const string& message, const string& attrs, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendGroupMessageQuest(from, gid, TextChatMType, message, attrs, mid);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    SendMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.mtime = ar.getInt("mtime");
+        result.mid = mid;
+    }
+    return result;
+}
+
+void RTMServerClient::sendGroupChat(int64_t from, int64_t gid, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendGroupMessageQuest(from, gid, TextChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
+        SendMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.mtime = ar.getInt("mtime");
+            result.mid = mid;
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        SendMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+SendMessageResult RTMServerClient::sendGroupAudio(int64_t from, int64_t gid, const string& message, const string& attrs, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendGroupMessageQuest(from, gid, AudioChatMType, message, attrs, mid);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    SendMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.mtime = ar.getInt("mtime");
+        result.mid = mid;
+    }
+    return result;
+}
+
+void RTMServerClient::sendGroupAudio(int64_t from, int64_t gid, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendGroupMessageQuest(from, gid, AudioChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
+        SendMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.mtime = ar.getInt("mtime");
+            result.mid = mid;
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        SendMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+SendMessageResult RTMServerClient::sendGroupCmd(int64_t from, int64_t gid, const string& message, const string& attrs, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendGroupMessageQuest(from, gid, CmdChatMType, message, attrs, mid);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    SendMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.mtime = ar.getInt("mtime");
+        result.mid = mid;
+    }
+    return result;
+}
+
+void RTMServerClient::sendGroupCmd(int64_t from, int64_t gid, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendGroupMessageQuest(from, gid, CmdChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
+        SendMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.mtime = ar.getInt("mtime");
+            result.mid = mid;
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        SendMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
 FPQuestPtr RTMServerClient::_getSendRoomMessageQuest(int64_t from, int64_t rid, int8_t mtype, const string& message, const string& attrs, int64_t& mid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "sendroommsg", sign, salt);
 
-    FPQWriter qw(9, "sendroommsg");
+    FPQWriter qw(10, "sendroommsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("mtype", mtype);
     qw.param("from", from);
     qw.param("rid", rid);
@@ -345,16 +695,132 @@ void RTMServerClient::sendRoomMessage(int64_t from, int64_t rid, int8_t mtype, c
     }
 }
 
+SendMessageResult RTMServerClient::sendRoomChat(int64_t from, int64_t rid, const string& message, const string& attrs, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendRoomMessageQuest(from, rid, TextChatMType, message, attrs, mid);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    SendMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.mtime = ar.getInt("mtime");
+        result.mid = mid;
+    }
+    return result;
+}
+
+void RTMServerClient::sendRoomChat(int64_t from, int64_t rid, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendRoomMessageQuest(from, rid, TextChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
+        SendMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.mtime = ar.getInt("mtime");
+            result.mid = mid;
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        SendMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+SendMessageResult RTMServerClient::sendRoomAudio(int64_t from, int64_t rid, const string& message, const string& attrs, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendRoomMessageQuest(from, rid, AudioChatMType, message, attrs, mid);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    SendMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.mtime = ar.getInt("mtime");
+        result.mid = mid;
+    }
+    return result;
+}
+
+void RTMServerClient::sendRoomAudio(int64_t from, int64_t rid, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendRoomMessageQuest(from, rid, AudioChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
+        SendMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.mtime = ar.getInt("mtime");
+            result.mid = mid;
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        SendMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+SendMessageResult RTMServerClient::sendRoomCmd(int64_t from, int64_t rid, const string& message, const string& attrs, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendRoomMessageQuest(from, rid, CmdChatMType, message, attrs, mid);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    SendMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.mtime = ar.getInt("mtime");
+        result.mid = mid;
+    }
+    return result;
+}
+
+void RTMServerClient::sendRoomCmd(int64_t from, int64_t rid, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getSendRoomMessageQuest(from, rid, CmdChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
+        SendMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.mtime = ar.getInt("mtime");
+            result.mid = mid;
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        SendMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
 FPQuestPtr RTMServerClient::_getBroadcastMessageQuest(int64_t from, int8_t mtype, const string& message, const string& attrs, int64_t& mid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "broadcastmsg", sign, salt);
 
-    FPQWriter qw(8, "broadcastmsg");
+    FPQWriter qw(9, "broadcastmsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("mtype", mtype);
     qw.param("from", from);
     if (mid == 0)
@@ -403,16 +869,132 @@ void RTMServerClient::broadcastMessage(int64_t from, int8_t mtype, const string&
     }
 }
 
+SendMessageResult RTMServerClient::broadcastChat(int64_t from, const string& message, const string& attrs, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getBroadcastMessageQuest(from, TextChatMType, message, attrs, mid);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    SendMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.mtime = ar.getInt("mtime");
+        result.mid = mid;
+    }
+    return result;
+}
+
+void RTMServerClient::broadcastChat(int64_t from, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getBroadcastMessageQuest(from, TextChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
+        SendMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.mtime = ar.getInt("mtime");
+            result.mid = mid;
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        SendMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+SendMessageResult RTMServerClient::broadcastAudio(int64_t from, const string& message, const string& attrs, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getBroadcastMessageQuest(from, AudioChatMType, message, attrs, mid);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    SendMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.mtime = ar.getInt("mtime");
+        result.mid = mid;
+    }
+    return result;
+}
+
+void RTMServerClient::broadcastAudio(int64_t from, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getBroadcastMessageQuest(from, AudioChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
+        SendMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.mtime = ar.getInt("mtime");
+            result.mid = mid;
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        SendMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+SendMessageResult RTMServerClient::broadcastCmd(int64_t from, const string& message, const string& attrs, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getBroadcastMessageQuest(from, CmdChatMType, message, attrs, mid);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    SendMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.mtime = ar.getInt("mtime");
+        result.mid = mid;
+    }
+    return result;
+}
+
+void RTMServerClient::broadcastCmd(int64_t from, const string& message, const string& attrs, std::function<void (SendMessageResult result)> callback, int64_t mid, int32_t timeout)
+{
+    FPQuestPtr quest = _getBroadcastMessageQuest(from, CmdChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
+        SendMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.mtime = ar.getInt("mtime");
+            result.mid = mid;
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        SendMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
 FPQuestPtr RTMServerClient::_getAddFriendsQuest(int64_t uid, const set<int64_t>& friends)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "addfriends", sign, salt);
 
-    FPQWriter qw(5, "addfriends");
+    FPQWriter qw(6, "addfriends");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("uid", uid);
     qw.param("friends", friends);
     return qw.take();
@@ -449,14 +1031,16 @@ void RTMServerClient::addFriends(int64_t uid, const set<int64_t>& friends, std::
 
 FPQuestPtr RTMServerClient::_getDeleteFriendsQuest(int64_t uid, const set<int64_t>& friends)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "delfriends", sign, salt);
 
-    FPQWriter qw(5, "delfriends");
+    FPQWriter qw(6, "delfriends");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("uid", uid);
     qw.param("friends", friends);
     return qw.take();
@@ -493,14 +1077,16 @@ void RTMServerClient::deleteFriends(int64_t uid, const set<int64_t>& friends, st
 
 FPQuestPtr RTMServerClient::_getGetFriendsQuest(int64_t uid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "getfriends", sign, salt);
 
-    FPQWriter qw(4, "getfriends");
+    FPQWriter qw(5, "getfriends");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("uid", uid);
     return qw.take();
 }
@@ -543,14 +1129,16 @@ void RTMServerClient::getFriends(int64_t uid, std::function<void (GetFriendsResu
 
 FPQuestPtr RTMServerClient::_getIsFriendQuest(int64_t uid, int64_t fuid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "isfriend", sign, salt);
 
-    FPQWriter qw(5, "isfriend");
+    FPQWriter qw(6, "isfriend");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("uid", uid);
     qw.param("fuid", fuid);
     return qw.take();
@@ -594,14 +1182,16 @@ void RTMServerClient::isFriend(int64_t uid, int64_t fuid, std::function<void (Is
 
 FPQuestPtr RTMServerClient::_getIsFriendsQuest(int64_t uid, const set<int64_t>& fuids)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "isfriends", sign, salt);
 
-    FPQWriter qw(5, "isfriends");
+    FPQWriter qw(6, "isfriends");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("uid", uid);
     qw.param("fuids", fuids);
     return qw.take();
@@ -645,14 +1235,16 @@ void RTMServerClient::isFriends(int64_t uid, const set<int64_t>& fuids, std::fun
 
 FPQuestPtr RTMServerClient::_getAddGroupMembersQuest(int64_t gid, const set<int64_t>& uids)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "addgroupmembers", sign, salt);
 
-    FPQWriter qw(5, "addgroupmembers");
+    FPQWriter qw(6, "addgroupmembers");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("gid", gid);
     qw.param("uids", uids);
     return qw.take();
@@ -689,14 +1281,16 @@ void RTMServerClient::addGroupMembers(int64_t gid, const set<int64_t>& uids, std
 
 FPQuestPtr RTMServerClient::_getDeleteGroupMembersQuest(int64_t gid, const set<int64_t>& uids)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "delgroupmembers", sign, salt);
 
-    FPQWriter qw(5, "delgroupmembers");
+    FPQWriter qw(6, "delgroupmembers");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("gid", gid);
     qw.param("uids", uids);
     return qw.take();
@@ -733,14 +1327,16 @@ void RTMServerClient::deleteGroupMembers(int64_t gid, const set<int64_t>& uids, 
 
 FPQuestPtr RTMServerClient::_getDeleteGroupQuest(int64_t gid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "delgroup", sign, salt);
 
-    FPQWriter qw(4, "delgroup");
+    FPQWriter qw(5, "delgroup");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("gid", gid);
     return qw.take();
 }
@@ -776,14 +1372,16 @@ void RTMServerClient::deleteGroup(int64_t gid, std::function<void (QuestResult r
 
 FPQuestPtr RTMServerClient::_getGetGroupMembersQuest(int64_t gid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "getgroupmembers", sign, salt);
 
-    FPQWriter qw(4, "getgroupmembers");
+    FPQWriter qw(5, "getgroupmembers");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("gid", gid);
     return qw.take();
 }
@@ -826,14 +1424,16 @@ void RTMServerClient::getGroupMembers(int64_t gid, std::function<void (GetGroupM
 
 FPQuestPtr RTMServerClient::_getIsGroupMemberQuest(int64_t gid, int64_t uid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "isgroupmember", sign, salt);
 
-    FPQWriter qw(5, "isgroupmember");
+    FPQWriter qw(6, "isgroupmember");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("gid", gid);
     qw.param("uid", uid);
     return qw.take();
@@ -877,14 +1477,16 @@ void RTMServerClient::isGroupMember(int64_t gid, int64_t uid, std::function<void
 
 FPQuestPtr RTMServerClient::_getGetUserGroupsQuest(int64_t uid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "getusergroups", sign, salt);
 
-    FPQWriter qw(4, "getusergroups");
+    FPQWriter qw(5, "getusergroups");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("uid", uid);
     return qw.take();
 }
@@ -927,14 +1529,16 @@ void RTMServerClient::getUserGroups(int64_t uid, std::function<void (GetUserGrou
 
 FPQuestPtr RTMServerClient::_getGetTokenQuest(int64_t uid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "gettoken", sign, salt);
 
-    FPQWriter qw(4, "gettoken");
+    FPQWriter qw(5, "gettoken");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("uid", uid);
     return qw.take();
 }
@@ -977,14 +1581,16 @@ void RTMServerClient::getToken(int64_t uid, std::function<void (GetTokenResult r
 
 FPQuestPtr RTMServerClient::_getGetOnlineUsersQuest(const set<int64_t>& uids)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "getonlineusers", sign, salt);
 
-    FPQWriter qw(4, "getonlineusers");
+    FPQWriter qw(5, "getonlineusers");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("uids", uids);
     return qw.take();
 }
@@ -1027,14 +1633,16 @@ void RTMServerClient::getOnlineUsers(const set<int64_t>& uids, std::function<voi
 
 FPQuestPtr RTMServerClient::_getAddGroupBanQuest(int64_t gid, int64_t uid, int32_t btime)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "addgroupban", sign, salt);
 
-    FPQWriter qw(6, "addgroupban");
+    FPQWriter qw(7, "addgroupban");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("gid", gid);
     qw.param("uid", uid);
     qw.param("btime", btime);
@@ -1072,14 +1680,16 @@ void RTMServerClient::addGroupBan(int64_t gid, int64_t uid, int32_t btime, std::
 
 FPQuestPtr RTMServerClient::_getRemoveGroupBanQuest(int64_t gid, int64_t uid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "removegroupban", sign, salt);
 
-    FPQWriter qw(5, "removegroupban");
+    FPQWriter qw(6, "removegroupban");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("gid", gid);
     qw.param("uid", uid);
     return qw.take();
@@ -1116,14 +1726,16 @@ void RTMServerClient::removeGroupBan(int64_t gid, int64_t uid, std::function<voi
 
 FPQuestPtr RTMServerClient::_getAddRoomBanQuest(int64_t rid, int64_t uid, int32_t btime)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "addroomban", sign, salt);
 
-    FPQWriter qw(6, "addroomban");
+    FPQWriter qw(7, "addroomban");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("rid", rid);
     qw.param("uid", uid);
     qw.param("btime", btime);
@@ -1161,14 +1773,16 @@ void RTMServerClient::addRoomBan(int64_t rid, int64_t uid, int32_t btime, std::f
 
 FPQuestPtr RTMServerClient::_getRemoveRoomBanQuest(int64_t rid, int64_t uid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "removeroomban", sign, salt);
 
-    FPQWriter qw(5, "removeroomban");
+    FPQWriter qw(6, "removeroomban");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("rid", rid);
     qw.param("uid", uid);
     return qw.take();
@@ -1205,14 +1819,16 @@ void RTMServerClient::removeRoomBan(int64_t rid, int64_t uid, std::function<void
 
 FPQuestPtr RTMServerClient::_getAddProjectBlackQuest(int64_t uid, int32_t btime)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "addprojectblack", sign, salt);
 
-    FPQWriter qw(5, "addprojectblack");
+    FPQWriter qw(6, "addprojectblack");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("uid", uid);
     qw.param("btime", btime);
     return qw.take();
@@ -1249,14 +1865,16 @@ void RTMServerClient::addProjectBlack(int64_t uid, int32_t btime, std::function<
 
 FPQuestPtr RTMServerClient::_getRemoveProjectBlackQuest(int64_t uid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "removeprojectblack", sign, salt);
 
-    FPQWriter qw(4, "removeprojectblack");
+    FPQWriter qw(5, "removeprojectblack");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("uid", uid);
     return qw.take();
 }
@@ -1292,14 +1910,16 @@ void RTMServerClient::removeProjectBlack(int64_t uid, std::function<void (QuestR
 
 FPQuestPtr RTMServerClient::_getIsBanOfGroupQuest(int64_t gid, int64_t uid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "isbanofgroup", sign, salt);
 
-    FPQWriter qw(5, "isbanofgroup");
+    FPQWriter qw(6, "isbanofgroup");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("gid", gid);
     qw.param("uid", uid);
     return qw.take();
@@ -1343,14 +1963,16 @@ void RTMServerClient::isBanOfGroup(int64_t gid, int64_t uid, std::function<void 
 
 FPQuestPtr RTMServerClient::_getIsBanOfRoomQuest(int64_t rid, int64_t uid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "isbanofroom", sign, salt);
 
-    FPQWriter qw(5, "isbanofroom");
+    FPQWriter qw(6, "isbanofroom");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("rid", rid);
     qw.param("uid", uid);
     return qw.take();
@@ -1394,14 +2016,16 @@ void RTMServerClient::isBanOfRoom(int64_t rid, int64_t uid, std::function<void (
 
 FPQuestPtr RTMServerClient::_getIsProjectBlackQuest(int64_t uid)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "isprojectblack", sign, salt);
 
-    FPQWriter qw(4, "isprojectblack");
+    FPQWriter qw(5, "isprojectblack");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("uid", uid);
     return qw.take();
 }
@@ -1444,17 +2068,19 @@ void RTMServerClient::isProjectBlack(int64_t uid, std::function<void (IsProjectB
 
 FPQuestPtr RTMServerClient::_getFileTokenQuest(int64_t from, const string& cmd, const FileTokenInfo& info)
 {
+    int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "broadcastfile", sign, salt);
 
-    int32_t size = 6;
+    int32_t size = 7;
     if (cmd == "broadcastfile")
-        size = 5;
+        size = 6;
     FPQWriter qw(size, "filetoken");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("from", from);
     qw.param("cmd", cmd);
     if (cmd == "sendfile")
@@ -1506,23 +2132,30 @@ void RTMServerClient::fileToken(int64_t from, const string& cmd, const FileToken
     }
 }
 
-FPQuestPtr RTMServerClient::_getGetGroupMessageQuest(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId) { string sign; int64_t salt; _makeSignAndSalt(sign, salt); 
-    FPQWriter qw(9, "getgroupmsg");
+FPQuestPtr RTMServerClient::_getGetGroupMessageQuest(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes) {
+    int32_t ts = slack_real_sec(); 
+    string sign; 
+    int64_t salt; 
+    _makeSignAndSalt(ts, "getgroupmsg", sign, salt); 
+
+    FPQWriter qw(11, "getgroupmsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("gid", gid);
     qw.param("desc", desc);
     qw.param("num", num);
     qw.param("begin", begin);
     qw.param("end", end);
     qw.param("lastid", lastId);
+    qw.param("mtypes", mtypes);
     return qw.take();
 }
 
-GetGroupMessageResult RTMServerClient::getGroupMessage(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout)
+GetGroupMessageResult RTMServerClient::getGroupChat(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetGroupMessageQuest(gid, desc, num, begin, end, lastId);
+    FPQuestPtr quest = _getGetGroupMessageQuest(gid, desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType});
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     GetGroupMessageResult result;
@@ -1538,9 +2171,9 @@ GetGroupMessageResult RTMServerClient::getGroupMessage(int64_t gid, bool desc, i
     return result;
 }
 
-void RTMServerClient::getGroupMessage(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetGroupMessageResult result)> callback, int32_t timeout)
+void RTMServerClient::getGroupChat(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetGroupMessageResult result)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetGroupMessageQuest(gid, desc, num, begin, end, lastId);
+    FPQuestPtr quest = _getGetGroupMessageQuest(gid, desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType});
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         GetGroupMessageResult result;
         if (errorCode == FPNN_EC_OK) {
@@ -1564,27 +2197,74 @@ void RTMServerClient::getGroupMessage(int64_t gid, bool desc, int16_t num, int64
     }
 }
 
-FPQuestPtr RTMServerClient::_getGetRoomMessageQuest(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId) { 
+GetGroupMessageResult RTMServerClient::getGroupMessage(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetGroupMessageQuest(gid, desc, num, begin, end, lastId, mtypes);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    GetGroupMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.num = ar.getInt("num");
+        result.lastId = ar.getInt("lastid");
+        result.begin = ar.getInt("begin");
+        result.end = ar.getInt("end");
+        result.msgs = ar.get("msgs", result.msgs);
+    }
+    return result;
+}
+
+void RTMServerClient::getGroupMessage(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, std::function<void (GetGroupMessageResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetGroupMessageQuest(gid, desc, num, begin, end, lastId, mtypes);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        GetGroupMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.num = ar.getInt("num");
+            result.lastId = ar.getInt("lastid");
+            result.begin = ar.getInt("begin");
+            result.end = ar.getInt("end");
+            result.msgs = ar.get("msgs", result.msgs);
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        GetGroupMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+FPQuestPtr RTMServerClient::_getGetRoomMessageQuest(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes) { 
+    int32_t ts = slack_real_sec(); 
     string sign; 
     int64_t salt; 
-    _makeSignAndSalt(sign, salt); 
+    _makeSignAndSalt(ts, "getroommsg", sign, salt); 
     
-    FPQWriter qw(9, "getroommsg");
+    FPQWriter qw(11, "getroommsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("rid", rid);
     qw.param("desc", desc);
     qw.param("num", num);
     qw.param("begin", begin);
     qw.param("end", end);
     qw.param("lastid", lastId);
+    qw.param("mtypes", mtypes);
     return qw.take();
 }
 
-GetRoomMessageResult RTMServerClient::getRoomMessage(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout)
+GetRoomMessageResult RTMServerClient::getRoomMessage(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetRoomMessageQuest(rid, desc, num, begin, end, lastId);
+    FPQuestPtr quest = _getGetRoomMessageQuest(rid, desc, num, begin, end, lastId, mtypes);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     GetRoomMessageResult result;
@@ -1600,9 +2280,9 @@ GetRoomMessageResult RTMServerClient::getRoomMessage(int64_t rid, bool desc, int
     return result;
 }
 
-void RTMServerClient::getRoomMessage(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetRoomMessageResult result)> callback, int32_t timeout)
+void RTMServerClient::getRoomMessage(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, std::function<void (GetRoomMessageResult result)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetRoomMessageQuest(rid, desc, num, begin, end, lastId);
+    FPQuestPtr quest = _getGetRoomMessageQuest(rid, desc, num, begin, end, lastId, mtypes);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         GetRoomMessageResult result;
         if (errorCode == FPNN_EC_OK) {
@@ -1626,26 +2306,73 @@ void RTMServerClient::getRoomMessage(int64_t rid, bool desc, int16_t num, int64_
     }
 }
 
-FPQuestPtr RTMServerClient::_getGetBroadcastMessageQuest(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId) { 
+GetRoomMessageResult RTMServerClient::getRoomChat(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetRoomMessageQuest(rid, desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType});
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    GetRoomMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.num = ar.getInt("num");
+        result.lastId = ar.getInt("lastid");
+        result.begin = ar.getInt("begin");
+        result.end = ar.getInt("end");
+        result.msgs = ar.get("msgs", result.msgs);
+    }
+    return result;
+}
+
+void RTMServerClient::getRoomChat(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetRoomMessageResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetRoomMessageQuest(rid, desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType});
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        GetRoomMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.num = ar.getInt("num");
+            result.lastId = ar.getInt("lastid");
+            result.begin = ar.getInt("begin");
+            result.end = ar.getInt("end");
+            result.msgs = ar.get("msgs", result.msgs);
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        GetRoomMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+FPQuestPtr RTMServerClient::_getGetBroadcastMessageQuest(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes) { 
+    int32_t ts = slack_real_sec(); 
     string sign; 
     int64_t salt; 
-    _makeSignAndSalt(sign, salt); 
+    _makeSignAndSalt(ts, "getbroadcastmsg", sign, salt); 
     
-    FPQWriter qw(8, "getbroadcastmsg");
+    FPQWriter qw(1, "getbroadcastmsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("desc", desc);
     qw.param("num", num);
     qw.param("begin", begin);
     qw.param("end", end);
     qw.param("lastid", lastId);
+    qw.param("mtypes", mtypes);
     return qw.take();
 }
 
-GetBroadcastMessageResult RTMServerClient::getBroadcastMessage(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout)
+GetBroadcastMessageResult RTMServerClient::getBroadcastMessage(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetBroadcastMessageQuest(desc, num, begin, end, lastId);
+    FPQuestPtr quest = _getGetBroadcastMessageQuest(desc, num, begin, end, lastId, mtypes);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     GetBroadcastMessageResult result;
@@ -1661,9 +2388,9 @@ GetBroadcastMessageResult RTMServerClient::getBroadcastMessage(bool desc, int16_
     return result;
 }
 
-void RTMServerClient::getBroadcastMessage(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetBroadcastMessageResult result)> callback, int32_t timeout)
+void RTMServerClient::getBroadcastMessage(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, std::function<void (GetBroadcastMessageResult result)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetBroadcastMessageQuest(desc, num, begin, end, lastId);
+    FPQuestPtr quest = _getGetBroadcastMessageQuest(desc, num, begin, end, lastId, mtypes);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         GetBroadcastMessageResult result;
         if (errorCode == FPNN_EC_OK) {
@@ -1687,15 +2414,61 @@ void RTMServerClient::getBroadcastMessage(bool desc, int16_t num, int64_t begin,
     }
 }
 
-FPQuestPtr RTMServerClient::_getGetP2PMessageQuest(int64_t uid, int64_t ouid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId) { 
+GetBroadcastMessageResult RTMServerClient::getBroadcastChat(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetBroadcastMessageQuest(desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType});
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    GetBroadcastMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.num = ar.getInt("num");
+        result.lastId = ar.getInt("lastid");
+        result.begin = ar.getInt("begin");
+        result.end = ar.getInt("end");
+        result.msgs = ar.get("msgs", result.msgs);
+    }
+    return result;
+}
+
+void RTMServerClient::getBroadcastChat(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetBroadcastMessageResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetBroadcastMessageQuest(desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType});
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        GetBroadcastMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.num = ar.getInt("num");
+            result.lastId = ar.getInt("lastid");
+            result.begin = ar.getInt("begin");
+            result.end = ar.getInt("end");
+            result.msgs = ar.get("msgs", result.msgs);
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        GetBroadcastMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+FPQuestPtr RTMServerClient::_getGetP2PMessageQuest(int64_t uid, int64_t ouid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes) { 
+    int32_t ts = slack_real_sec(); 
     string sign; 
     int64_t salt; 
-    _makeSignAndSalt(sign, salt); 
+    _makeSignAndSalt(ts, "getp2pmsg", sign, salt); 
     
-    FPQWriter qw(10, "getp2pmsg");
+    FPQWriter qw(12, "getp2pmsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("uid", uid);
     qw.param("ouid", ouid);
     qw.param("desc", desc);
@@ -1703,12 +2476,13 @@ FPQuestPtr RTMServerClient::_getGetP2PMessageQuest(int64_t uid, int64_t ouid, bo
     qw.param("begin", begin);
     qw.param("end", end);
     qw.param("lastid", lastId);
+    qw.param("mtypes", mtypes);
     return qw.take();
 }
 
-GetP2PMessageResult RTMServerClient::getP2PMessage(int64_t uid, int64_t ouid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout)
+GetP2PMessageResult RTMServerClient::getP2PMessage(int64_t uid, int64_t ouid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetP2PMessageQuest(uid, ouid, desc, num, begin, end, lastId);
+    FPQuestPtr quest = _getGetP2PMessageQuest(uid, ouid, desc, num, begin, end, lastId, mtypes);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     GetP2PMessageResult result;
@@ -1724,9 +2498,53 @@ GetP2PMessageResult RTMServerClient::getP2PMessage(int64_t uid, int64_t ouid, bo
     return result;
 }
 
-void RTMServerClient::getP2PMessage(int64_t uid, int64_t ouid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetP2PMessageResult result)> callback, int32_t timeout)
+void RTMServerClient::getP2PMessage(int64_t uid, int64_t ouid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, std::function<void (GetP2PMessageResult result)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetP2PMessageQuest(uid, ouid, desc, num, begin, end, lastId);
+    FPQuestPtr quest = _getGetP2PMessageQuest(uid, ouid, desc, num, begin, end, lastId, mtypes);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        GetP2PMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.num = ar.getInt("num");
+            result.lastId = ar.getInt("lastid");
+            result.begin = ar.getInt("begin");
+            result.end = ar.getInt("end");
+            result.msgs = ar.get("msgs", result.msgs);
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        GetP2PMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+GetP2PMessageResult RTMServerClient::getP2PChat(int64_t uid, int64_t ouid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetP2PMessageQuest(uid, ouid, desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType});
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    GetP2PMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.num = ar.getInt("num");
+        result.lastId = ar.getInt("lastid");
+        result.begin = ar.getInt("begin");
+        result.end = ar.getInt("end");
+        result.msgs = ar.get("msgs", result.msgs);
+    }
+    return result;
+}
+
+void RTMServerClient::getP2PChat(int64_t uid, int64_t ouid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetP2PMessageResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetP2PMessageQuest(uid, ouid, desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType});
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         GetP2PMessageResult result;
         if (errorCode == FPNN_EC_OK) {
@@ -1752,14 +2570,16 @@ void RTMServerClient::getP2PMessage(int64_t uid, int64_t ouid, bool desc, int16_
 
 FPQuestPtr RTMServerClient::_getAddRoomMemberQuest(int64_t rid, int64_t uid)
 {
+    int32_t ts = slack_real_sec(); 
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "addroommember", sign, salt);
 
-    FPQWriter qw(5, "addroommember");
+    FPQWriter qw(6, "addroommember");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("rid", rid);
     qw.param("uid", uid);
     return qw.take();
@@ -1796,14 +2616,16 @@ void RTMServerClient::addRoomMember(int64_t rid, int64_t uid, std::function<void
 
 FPQuestPtr RTMServerClient::_getDeleteRoomMemberQuest(int64_t rid, int64_t uid)
 {
+    int32_t ts = slack_real_sec(); 
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "delroommember", sign, salt);
 
-    FPQWriter qw(5, "delroommember");
+    FPQWriter qw(6, "delroommember");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("rid", rid);
     qw.param("uid", uid);
     return qw.take();
@@ -1840,14 +2662,16 @@ void RTMServerClient::deleteRoomMember(int64_t rid, int64_t uid, std::function<v
 
 FPQuestPtr RTMServerClient::_getAddListenQuest(const set<int64_t>& gids, const set<int64_t>& rids, bool p2p, const set<string>& events)
 {
+    int32_t ts = slack_real_sec(); 
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "addlisten", sign, salt);
 
-    FPQWriter qw(7, "addlisten");
+    FPQWriter qw(8, "addlisten");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("gids", gids);
     qw.param("rids", rids);
     qw.param("p2p", p2p);
@@ -1886,14 +2710,16 @@ void RTMServerClient::addListen(const set<int64_t>& gids, const set<int64_t>& ri
 
 FPQuestPtr RTMServerClient::_getRemoveListenQuest(const set<int64_t>& gids, const set<int64_t>& rids, bool p2p, const set<string>& events)
 {
+    int32_t ts = slack_real_sec(); 
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "removelisten", sign, salt);
 
-    FPQWriter qw(7, "removelisten");
+    FPQWriter qw(8, "removelisten");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("gids", gids);
     qw.param("rids", rids);
     qw.param("p2p", p2p);
@@ -1932,14 +2758,16 @@ void RTMServerClient::removeListen(const set<int64_t>& gids, const set<int64_t>&
 
 FPQuestPtr RTMServerClient::_getSetListenQuest(const set<int64_t>& gids, const set<int64_t>& rids, bool p2p, const set<string>& events, bool all)
 {
+    int32_t ts = slack_real_sec(); 
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "setlisten", sign, salt);
 
-    FPQWriter qw(8, "setlisten");
+    FPQWriter qw(9, "setlisten");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("gids", gids);
     qw.param("rids", rids);
     qw.param("p2p", p2p);
@@ -1979,14 +2807,16 @@ void RTMServerClient::setListen(const set<int64_t>& gids, const set<int64_t>& ri
 
 FPQuestPtr RTMServerClient::_getAddDeviceQuest(int64_t uid, const string& appType, const string& deviceToken)
 {
+    int32_t ts = slack_real_sec(); 
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "adddevice", sign, salt);
 
-    FPQWriter qw(6, "adddevice");
+    FPQWriter qw(7, "adddevice");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("uid", uid);
     qw.param("appType", appType);
     qw.param("deviceToken", deviceToken);
@@ -2024,14 +2854,16 @@ void RTMServerClient::addDevice(int64_t uid, const string& appType, const string
 
 FPQuestPtr RTMServerClient::_getRemoveDeviceQuest(int64_t uid, const string& deviceToken)
 {
+    int32_t ts = slack_real_sec(); 
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "removedevice", sign, salt);
 
-    FPQWriter qw(5, "removedevice");
+    FPQWriter qw(6, "removedevice");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("uid", uid);
     qw.param("deviceToken", deviceToken);
     return qw.take();
@@ -2066,16 +2898,63 @@ void RTMServerClient::removeDevice(int64_t uid, const string& deviceToken, std::
     }
 }
 
-FPQuestPtr RTMServerClient::_getDeleteMessageQuest(int64_t mid, int64_t from, int64_t xid, int8_t type)
+FPQuestPtr RTMServerClient::_getRemoveTokenQuest(int64_t uid)
 {
+    int32_t ts = slack_real_sec(); 
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "removetoken", sign, salt);
 
-    FPQWriter qw(7, "delmsg");
+    FPQWriter qw(5, "removetoken");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("uid", uid);
+    return qw.take();
+}
+
+QuestResult RTMServerClient::removeToken(int64_t uid, int32_t timeout)
+{
+    FPQuestPtr quest = _getRemoveTokenQuest(uid);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    QuestResult result;
+    _checkAnswerError(answer, result);
+    return result;
+}
+
+void RTMServerClient::removeToken(int64_t uid, std::function<void (QuestResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getRemoveTokenQuest(uid);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        QuestResult result;
+        if (errorCode != FPNN_EC_OK)
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        QuestResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+FPQuestPtr RTMServerClient::_getDeleteMessageQuest(int64_t mid, int64_t from, int64_t xid, int8_t type)
+{
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "delmsg", sign, salt);
+
+    FPQWriter qw(8, "delmsg");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("mid", mid);
     qw.param("from", from);
     qw.param("xid", xid);
@@ -2112,16 +2991,28 @@ void RTMServerClient::deleteMessage(int64_t mid, int64_t from, int64_t xid, int8
     }
 }
 
+QuestResult RTMServerClient::deleteChat(int64_t mid, int64_t from, int64_t xid, int8_t type, int32_t timeout)
+{
+    return deleteMessage(mid, from, xid, type, timeout);
+}
+
+void RTMServerClient::deleteChat(int64_t mid, int64_t from, int64_t xid, int8_t type, std::function<void (QuestResult result)> callback, int32_t timeout)
+{
+    deleteMessage(mid, from, xid, type, callback, timeout);
+}
+
 FPQuestPtr RTMServerClient::_getKickoutQuest(int64_t uid, const string& ce)
 {
+    int32_t ts = slack_real_sec(); 
     string sign;
     int64_t salt;
-    _makeSignAndSalt(sign, salt);
+    _makeSignAndSalt(ts, "kickout", sign, salt);
 
-    FPQWriter qw(5, "kickout");
+    FPQWriter qw(6, "kickout");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
+    qw.param("ts", ts);
     qw.param("uid", uid);
     qw.param("ce", ce);
     return qw.take();
@@ -2383,3 +3274,575 @@ void RTMServerClient::broadcastFile(int64_t from, int8_t mtype, const string& fi
     }, mid, timeout);
 }
 
+FPQuestPtr RTMServerClient::_getTranslateQuest(const string& text, const string& dst, const string& src, const string& type, const string& profanity, bool postProfanity, int64_t uid)
+{
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "translate", sign, salt);
+
+    FPQWriter qw(11, "translate");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("text", text);
+    qw.param("dst", dst);
+    qw.param("src", src);
+    qw.param("type", type);
+    qw.param("profanity", profanity);
+    qw.param("postProfanity", postProfanity);
+    qw.param("uid", uid);
+    return qw.take();
+}
+
+TranslateResult RTMServerClient::translate(const string& text, const string& dst, const string& src, const string& type, const string& profanity, bool postProfanity, int64_t uid, int32_t timeout)
+{
+    string typeNew = type;
+    if (type != "chat" && type != "mail")
+        typeNew = "chat";
+
+    string profanityNew = profanity;
+    if (profanity != "off" && profanity != "stop" && profanity != "censor")
+        profanityNew = "off";
+
+    FPQuestPtr quest = _getTranslateQuest(text, dst, src, typeNew, profanityNew, postProfanity, uid);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    TranslateResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.source = ar.getString("source");
+        result.target = ar.getString("target");
+        result.sourceText = ar.getString("sourceText");
+        result.targetText = ar.getString("targetText");
+    }
+    return result;
+}
+
+void RTMServerClient::translate(const string& text, const string& dst, const string& src, const string& type, const string& profanity, bool postProfanity, int64_t uid, std::function<void (TranslateResult result)> callback, int32_t timeout)
+{
+    string typeNew = type;
+    if (type != "chat" && type != "mail")
+        typeNew = "chat";
+
+    string profanityNew = profanity;
+    if (profanity != "off" && profanity != "stop" && profanity != "censor")
+        profanityNew = "off";
+
+    FPQuestPtr quest = _getTranslateQuest(text, dst, src, typeNew, profanityNew, postProfanity, uid);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        TranslateResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.source = ar.getString("source");
+            result.target = ar.getString("target");
+            result.sourceText = ar.getString("sourceText");
+            result.targetText = ar.getString("targetText");
+        } else
+            _checkAnswerError(answer, result);  
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        TranslateResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+FPQuestPtr RTMServerClient::_getProfanityQuest(const string& text, bool classify, int64_t uid)
+{
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "profanity", sign, salt);
+
+    FPQWriter qw(7, "profanity");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("text", text);
+    qw.param("classify", classify);
+    qw.param("uid", uid);
+    return qw.take();
+}
+
+ProfanityResult RTMServerClient::profanity(const string& text, bool classify, int64_t uid, int32_t timeout)
+{
+    FPQuestPtr quest = _getProfanityQuest(text, classify, uid);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    ProfanityResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.text = ar.getString("text");
+        result.classification = ar.get("classification", vector<string>());
+    }
+    return result;
+}
+
+void RTMServerClient::profanity(const string& text, bool classify, int64_t uid, std::function<void (ProfanityResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getProfanityQuest(text, classify, uid);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        ProfanityResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.text = ar.getString("text");
+            result.classification = ar.get("classification", vector<string>());
+        } else
+            _checkAnswerError(answer, result);  
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        ProfanityResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+FPQuestPtr RTMServerClient::_getTranscribeQuest(const string& audio, const string& lang, int64_t uid, const string& codec, int32_t srate)
+{
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "transcribe", sign, salt);
+
+    FPQWriter qw(9, "transcribe");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("audio", audio);
+    qw.param("lang", lang);
+    qw.param("uid", uid);
+    qw.param("codec", codec);
+    qw.param("srate", srate);
+    return qw.take();
+}
+
+TranscribeResult RTMServerClient::transcribe(const string& audio, const string& lang, int64_t uid, const string& codec, int32_t srate, int32_t timeout)
+{
+    FPQuestPtr quest = _getTranscribeQuest(audio, lang, uid, codec, srate);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    TranscribeResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.text = ar.getString("text");
+        result.lang = ar.getString("lang");
+    }
+    return result;
+}
+
+void RTMServerClient::transcribe(const string& audio, const string& lang, int64_t uid, const string& codec, int32_t srate, std::function<void (TranscribeResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getTranscribeQuest(audio, lang, uid, codec, srate);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        TranscribeResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.text = ar.getString("text");
+            result.lang = ar.getString("lang");
+        } else
+            _checkAnswerError(answer, result);  
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        TranscribeResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+FPQuestPtr RTMServerClient::_getSetUserInfoQuest(int64_t uid, string* oinfo, string* pinfo)
+{
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "setuserinfo", sign, salt);
+
+    int32_t size = 7;
+    if (!oinfo)
+        --size;
+    if (!pinfo)
+        --size;
+
+    FPQWriter qw(size, "setuserinfo");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("uid", uid);
+    if (oinfo)
+        qw.param("oinfo", *oinfo);
+    if (pinfo)
+        qw.param("pinfo", *pinfo);
+    return qw.take();
+}
+
+QuestResult RTMServerClient::setUserInfo(int64_t uid, string* oinfo, string* pinfo, int32_t timeout)
+{
+    FPQuestPtr quest = _getSetUserInfoQuest(uid, oinfo, pinfo);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    QuestResult result;
+    _checkAnswerError(answer, result);
+    return result;
+}
+
+void RTMServerClient::setUserInfo(int64_t uid, string* oinfo, string* pinfo, std::function<void (QuestResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getSetUserInfoQuest(uid, oinfo, pinfo);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        QuestResult result;
+        if (errorCode != FPNN_EC_OK)
+            _checkAnswerError(answer, result);  
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        QuestResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+FPQuestPtr RTMServerClient::_getGetUserInfoQuest(int64_t uid)
+{
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "getuserinfo", sign, salt);
+
+    FPQWriter qw(5, "getuserinfo");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("uid", uid);
+    return qw.take();
+}
+
+GetUserInfoResult RTMServerClient::getUserInfo(int64_t uid, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetUserInfoQuest(uid);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    GetUserInfoResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.oinfo = ar.getString("oinfo");
+        result.pinfo = ar.getString("pinfo");
+    }
+    return result;
+}
+
+void RTMServerClient::getUserInfo(int64_t uid, std::function<void (GetUserInfoResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetUserInfoQuest(uid);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        GetUserInfoResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.oinfo = ar.getString("oinfo");
+            result.pinfo = ar.getString("pinfo");
+        } else
+            _checkAnswerError(answer, result);  
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        GetUserInfoResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+FPQuestPtr RTMServerClient::_getGetUserOpenInfoQuest(const set<int64_t>& uids)
+{
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "getuseropeninfo", sign, salt);
+
+    FPQWriter qw(5, "getuseropeninfo");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("uids", uids);
+    return qw.take();
+}
+
+GetUserOpenInfoResult RTMServerClient::getUserOpenInfo(const set<int64_t>& uids, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetUserOpenInfoQuest(uids);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    GetUserOpenInfoResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.info = ar.get("info", map<string, string>());
+    }
+    return result;
+}
+
+void RTMServerClient::getUserOpenInfo(const set<int64_t>& uids, std::function<void (GetUserOpenInfoResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetUserOpenInfoQuest(uids);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        GetUserOpenInfoResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.info = ar.get("info", map<string, string>());
+        } else
+            _checkAnswerError(answer, result);  
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        GetUserOpenInfoResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+FPQuestPtr RTMServerClient::_getSetGroupInfoQuest(int64_t gid, string* oinfo, string* pinfo)
+{
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "setgroupinfo", sign, salt);
+
+    int32_t size = 7;
+    if (!oinfo)
+        --size;
+    if (!pinfo)
+        --size;
+
+    FPQWriter qw(size, "setgroupinfo");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("gid", gid);
+    if (oinfo)
+        qw.param("oinfo", *oinfo);
+    if (pinfo)
+        qw.param("pinfo", *pinfo);
+    return qw.take();
+}
+
+QuestResult RTMServerClient::setGroupInfo(int64_t gid, string* oinfo, string* pinfo, int32_t timeout)
+{
+    FPQuestPtr quest = _getSetGroupInfoQuest(gid, oinfo, pinfo);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    QuestResult result;
+    _checkAnswerError(answer, result);
+    return result;
+}
+
+void RTMServerClient::setGroupInfo(int64_t gid, string* oinfo, string* pinfo, std::function<void (QuestResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getSetGroupInfoQuest(gid, oinfo, pinfo);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        QuestResult result;
+        if (errorCode != FPNN_EC_OK)
+            _checkAnswerError(answer, result);
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        QuestResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+FPQuestPtr RTMServerClient::_getGetGroupInfoQuest(int64_t gid)
+{
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "getgroupinfo", sign, salt);
+
+    FPQWriter qw(5, "getgroupinfo");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("gid", gid);
+    return qw.take();
+}
+
+GetGroupInfoResult RTMServerClient::getGroupInfo(int64_t gid, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetGroupInfoQuest(gid);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    GetGroupInfoResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.oinfo = ar.getString("oinfo");
+        result.pinfo = ar.getString("pinfo");
+    }
+    return result;
+}
+
+void RTMServerClient::getGroupInfo(int64_t gid, std::function<void (GetGroupInfoResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetGroupInfoQuest(gid);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        GetGroupInfoResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.oinfo = ar.getString("oinfo");
+            result.pinfo = ar.getString("pinfo");
+        } else
+            _checkAnswerError(answer, result);  
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        GetGroupInfoResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+FPQuestPtr RTMServerClient::_getSetRoomInfoQuest(int64_t rid, string* oinfo, string* pinfo)
+{
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "setroominfo", sign, salt);
+
+    int32_t size = 7;
+    if (!oinfo)
+        --size;
+    if (!pinfo)
+        --size;
+
+    FPQWriter qw(size, "setroominfo");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("rid", rid);
+    if (oinfo)
+        qw.param("oinfo", *oinfo);
+    if (pinfo)
+        qw.param("pinfo", *pinfo);
+    return qw.take();
+}
+
+QuestResult RTMServerClient::setRoomInfo(int64_t rid, string* oinfo, string* pinfo, int32_t timeout)
+{
+    FPQuestPtr quest = _getSetRoomInfoQuest(rid, oinfo, pinfo);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    QuestResult result;
+    _checkAnswerError(answer, result);
+    return result;
+}
+
+void RTMServerClient::setRoomInfo(int64_t rid, string* oinfo, string* pinfo, std::function<void (QuestResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getSetRoomInfoQuest(rid, oinfo, pinfo);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        QuestResult result;
+        if (errorCode != FPNN_EC_OK)
+            _checkAnswerError(answer, result);
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        QuestResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+FPQuestPtr RTMServerClient::_getGetRoomInfoQuest(int64_t rid)
+{
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "getroominfo", sign, salt);
+
+    FPQWriter qw(5, "getroominfo");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("rid", rid);
+    return qw.take();
+}
+
+GetRoomInfoResult RTMServerClient::getRoomInfo(int64_t rid, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetRoomInfoQuest(rid);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    GetRoomInfoResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.oinfo = ar.getString("oinfo");
+        result.pinfo = ar.getString("pinfo");
+    }
+    return result;
+}
+
+void RTMServerClient::getRoomInfo(int64_t rid, std::function<void (GetRoomInfoResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetRoomInfoQuest(rid);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        GetRoomInfoResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.oinfo = ar.getString("oinfo");
+            result.pinfo = ar.getString("pinfo");
+        } else
+            _checkAnswerError(answer, result);  
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        GetRoomInfoResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}

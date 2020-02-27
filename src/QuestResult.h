@@ -163,6 +163,45 @@ namespace rtm
         int64_t end;
         vector<struct P2PMessage> msgs;
     };
+
+    struct TranslateResult: QuestResult
+    {
+        string source;
+        string target;
+        string sourceText;
+        string targetText;
+    };
+
+    struct ProfanityResult: QuestResult
+    {
+        string text;
+        vector<string> classification;
+    };
+
+    struct TranscribeResult: QuestResult
+    {
+        string text;
+        string lang;
+    };
+
+    struct GetUserInfoResult: QuestResult
+    {
+        string oinfo;
+        string pinfo;
+    };
+
+    struct GetUserOpenInfoResult: QuestResult
+    {
+        map<string, string> info;
+    };
+
+    struct GetGroupInfoResult: GetUserInfoResult 
+    {
+    };
+
+    struct GetRoomInfoResult: GetUserInfoResult 
+    {
+    };
 }
 
 #endif

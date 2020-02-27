@@ -14,6 +14,18 @@ namespace rtm
         P2PMessage = 0,
         GroupMessage = 1,
         RoomMessage = 2,
+        P2PFile = 3,
+        GroupFile = 4,
+        RoomFile = 5,
+        P2PChat = 6,
+        GroupChat = 7,
+        RoomChat = 8,
+        P2PAudio = 9,
+        GroupAudio = 10,
+        RoomAudio = 11,
+        P2PCmd = 12,
+        GroupCmd = 13,
+        RoomCmd = 14,
     };
 
     struct MessageDuplicateKey
@@ -73,6 +85,18 @@ namespace rtm
         FPAnswerPtr pushRoommMessageAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
         FPAnswerPtr pushEventAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
         FPAnswerPtr pingAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
+        FPAnswerPtr pushP2PFileAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
+        FPAnswerPtr pushGroupFileAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
+        FPAnswerPtr pushRoomFileAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
+        FPAnswerPtr pushP2PChatAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
+        FPAnswerPtr pushGroupChatAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
+        FPAnswerPtr pushRoomChatAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
+        FPAnswerPtr pushP2PAudioAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
+        FPAnswerPtr pushGroupAudioAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
+        FPAnswerPtr pushRoomAudioAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
+        FPAnswerPtr pushP2PCmdAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
+        FPAnswerPtr pushGroupCmdAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
+        FPAnswerPtr pushRoomCmdAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
 
         RTMProcessor(int32_t duplicateCacheSize)
         {
@@ -84,6 +108,18 @@ namespace rtm
             registerMethod("pushroommsg", &RTMProcessor::pushRoommMessageAction);
             registerMethod("pushevent", &RTMProcessor::pushEventAction);
             registerMethod("ping", &RTMProcessor::pingAction);
+            registerMethod("pushfile", &RTMProcessor::pushP2PFileAction);
+            registerMethod("pushgroupfile", &RTMProcessor::pushGroupFileAction);
+            registerMethod("pushroomfile", &RTMProcessor::pushRoomFileAction);
+            registerMethod("pushchat", &RTMProcessor::pushP2PChatAction);
+            registerMethod("pushgroupchat", &RTMProcessor::pushGroupChatAction);
+            registerMethod("pushroomchat", &RTMProcessor::pushRoomChatAction);
+            registerMethod("pushaudio", &RTMProcessor::pushP2PAudioAction);
+            registerMethod("pushgroupaudio", &RTMProcessor::pushGroupAudioAction);
+            registerMethod("pushroomaudio", &RTMProcessor::pushRoomAudioAction);
+            registerMethod("pushcmd", &RTMProcessor::pushP2PCmdAction);
+            registerMethod("pushgroupcmd", &RTMProcessor::pushGroupCmdAction);
+            registerMethod("pushroomcmd", &RTMProcessor::pushRoomCmdAction);
         }
 
         ~RTMProcessor()
