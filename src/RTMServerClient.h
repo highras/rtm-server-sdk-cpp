@@ -213,6 +213,10 @@ namespace rtm
         void setRoomInfo(int64_t rid, string* oinfo, string* pinfo, std::function<void (QuestResult result)> callback, int32_t timeout = 0);
         GetRoomInfoResult getRoomInfo(int64_t rid, int32_t timeout = 0);
         void getRoomInfo(int64_t rid, std::function<void (GetRoomInfoResult result)> callback, int32_t timeout = 0);
+        GetMessageResult getMessage(int64_t mid, int64_t from, int64_t xid, int8_t type, int32_t timeout = 0);
+        void getMessage(int64_t mid, int64_t from, int64_t xid, int8_t type, std::function<void (GetMessageResult result)> callback, int32_t timeout = 0);
+        GetMessageResult getChat(int64_t mid, int64_t from, int64_t xid, int8_t type, int32_t timeout = 0);
+        void getChat(int64_t mid, int64_t from, int64_t xid, int8_t type, std::function<void (GetMessageResult result)> callback, int32_t timeout);
 
     private:
         string _calcMD5(const string& content);
@@ -274,6 +278,7 @@ namespace rtm
         FPQuestPtr _getGetGroupInfoQuest(int64_t gid);
         FPQuestPtr _getSetRoomInfoQuest(int64_t rid, string* oinfo, string* pinfo);
         FPQuestPtr _getGetRoomInfoQuest(int64_t rid);
+        FPQuestPtr _getGetMessageQuest(int64_t mid, int64_t from, int64_t xid, int8_t type);
 
         TCPClientPtr _client;
         int32_t _pid;

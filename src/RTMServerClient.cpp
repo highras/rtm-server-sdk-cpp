@@ -2943,6 +2943,79 @@ void RTMServerClient::removeToken(int64_t uid, std::function<void (QuestResult r
     }
 }
 
+FPQuestPtr RTMServerClient::_getGetMessageQuest(int64_t mid, int64_t from, int64_t xid, int8_t type)
+{
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "getmsg", sign, salt);
+
+    FPQWriter qw(8, "getmsg");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("mid", mid);
+    qw.param("from", from);
+    qw.param("xid", xid);
+    qw.param("type", type);
+    return qw.take();
+}
+
+GetMessageResult RTMServerClient::getMessage(int64_t mid, int64_t from, int64_t xid, int8_t type, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetMessageQuest(mid, from, xid, type);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    GetMessageResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.id = ar.getInt("id");
+        result.mtype = ar.getInt("mtype");
+        result.msg = ar.getString("msg");
+        result.attrs = ar.getString("attrs");
+        result.mtime = ar.getInt("mtime");
+    }
+    return result;
+}
+
+void RTMServerClient::getMessage(int64_t mid, int64_t from, int64_t xid, int8_t type, std::function<void (GetMessageResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetMessageQuest(mid, from, xid, type);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        GetMessageResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.id = ar.getInt("id");
+            result.mtype = ar.getInt("mtype");
+            result.msg = ar.getString("msg");
+            result.attrs = ar.getString("attrs");
+            result.mtime = ar.getInt("mtime");
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        GetMessageResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+GetMessageResult RTMServerClient::getChat(int64_t mid, int64_t from, int64_t xid, int8_t type, int32_t timeout)
+{
+    return getMessage(mid, from, xid, type, timeout);
+}
+
+void RTMServerClient::getChat(int64_t mid, int64_t from, int64_t xid, int8_t type, std::function<void (GetMessageResult result)> callback, int32_t timeout)
+{
+    getMessage(mid, from, xid, type, callback, timeout);
+}
+
 FPQuestPtr RTMServerClient::_getDeleteMessageQuest(int64_t mid, int64_t from, int64_t xid, int8_t type)
 {
     int32_t ts = slack_real_sec(); 

@@ -1313,6 +1313,38 @@
     * `type`: 消息发送分类 `1:P2P, 2:Group, 3:Room, 4:Broadcast`
     * `timeout`: 超时时间(s)
 
+#### 获取消息(同步)
+* `QuestResult getMessage(int64_t mid, int64_t from, int64_t xid, int8_t type, int32_t timeout = 0)`
+    * `mid`: 消息id
+    * `from`: 发送方id
+    * `xid`: 接收放id, `rid/gid/to`
+    * `type`: 消息发送分类 `1:P2P, 2:Group, 3:Room, 4:Broadcast`
+    * `timeout`: 超时时间(s)
+
+#### 获取消息(异步)
+* `void getMessage(int64_t mid, int64_t from, int64_t xid, int8_t type, std::function<void (QuestResult result)> callback, int32_t timeout = 0)` 
+    * `mid`: 消息id
+    * `from`: 发送方id
+    * `xid`: 接收放id, `rid/gid/to`
+    * `type`: 消息发送分类 `1:P2P, 2:Group, 3:Room, 4:Broadcast`
+    * `timeout`: 超时时间(s)
+
+#### 获取聊天(同步)
+* `QuestResult getChat(int64_t mid, int64_t from, int64_t xid, int8_t type, int32_t timeout = 0)`
+    * `mid`: 消息id
+    * `from`: 发送方id
+    * `xid`: 接收放id, `rid/gid/to`
+    * `type`: 消息发送分类 `1:P2P, 2:Group, 3:Room, 4:Broadcast`
+    * `timeout`: 超时时间(s)
+
+#### 获取聊天(异步)
+* `void getChat(int64_t mid, int64_t from, int64_t xid, int8_t type, std::function<void (QuestResult result)> callback, int32_t timeout = 0)` 
+    * `mid`: 消息id
+    * `from`: 发送方id
+    * `xid`: 接收放id, `rid/gid/to`
+    * `type`: 消息发送分类 `1:P2P, 2:Group, 3:Room, 4:Broadcast`
+    * `timeout`: 超时时间(s)
+
 #### 删除聊天(同步)
 * `QuestResult deleteChat(int64_t mid, int64_t from, int64_t xid, int8_t type, int32_t timeout = 0)`
     * `mid`: 消息id

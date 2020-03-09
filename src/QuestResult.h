@@ -202,6 +202,15 @@ namespace rtm
     struct GetRoomInfoResult: GetUserInfoResult 
     {
     };
+
+    struct GetMessageResult: QuestResult
+    {
+        int64_t id;
+        int8_t mtype;
+        string msg;
+        string attrs;
+        int64_t mtime;
+    };
 }
 
 #endif
