@@ -3483,29 +3483,33 @@ void RTMServerClient::profanity(const string& text, bool classify, int64_t uid, 
     }
 }
 
-FPQuestPtr RTMServerClient::_getTranscribeQuest(const string& audio, const string& lang, int64_t uid, const string& codec, int32_t srate)
+FPQuestPtr RTMServerClient::_getTranscribeQuest(const string& audio, int64_t uid)
 {
     int32_t ts = slack_real_sec(); 
     string sign;
     int64_t salt;
     _makeSignAndSalt(ts, "transcribe", sign, salt);
 
-    FPQWriter qw(9, "transcribe");
+    int32_t size = 5;
+    if (uid > 0)
+        ++size;
+
+    FPQWriter qw(size, "transcribe");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
     qw.param("ts", ts);
     qw.param("audio", audio);
-    qw.param("lang", lang);
-    qw.param("uid", uid);
-    qw.param("codec", codec);
-    qw.param("srate", srate);
+
+    if (uid > 0)
+        qw.param("uid", uid);
+
     return qw.take();
 }
 
-TranscribeResult RTMServerClient::transcribe(const string& audio, const string& lang, int64_t uid, const string& codec, int32_t srate, int32_t timeout)
+TranscribeResult RTMServerClient::transcribe(const string& audio, int64_t uid, int32_t timeout)
 {
-    FPQuestPtr quest = _getTranscribeQuest(audio, lang, uid, codec, srate);
+    FPQuestPtr quest = _getTranscribeQuest(audio, uid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     TranscribeResult result;
@@ -3518,9 +3522,9 @@ TranscribeResult RTMServerClient::transcribe(const string& audio, const string& 
     return result;
 }
 
-void RTMServerClient::transcribe(const string& audio, const string& lang, int64_t uid, const string& codec, int32_t srate, std::function<void (TranscribeResult result)> callback, int32_t timeout)
+void RTMServerClient::transcribe(const string& audio, int64_t uid, std::function<void (TranscribeResult result)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getTranscribeQuest(audio, lang, uid, codec, srate);
+    FPQuestPtr quest = _getTranscribeQuest(audio, uid);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         TranscribeResult result;
         if (errorCode == FPNN_EC_OK) {

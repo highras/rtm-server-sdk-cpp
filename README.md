@@ -1590,12 +1590,9 @@
 		* `result.classification`: **(vector<string>)** 分类
 
 #### 语音识别(同步)
-* `TranscribeResult transcribe(const string& audio, const string& lang, int64_t uid, const string& codec, int32_t srate, int32_t timeout = 0)`
+* `TranscribeResult transcribe(const string& audio, int64_t uid, int32_t timeout = 0)`
     * `audio`: 语音二进制字符串
-    * `lang`: 语言类型
     * `uid`:  用户id，不需要传0
-    * `codec`:  编码类型
-    * `srate`:  码率
     * `timeout`: 超时时间(s)
     * `TranscribeResult`: 返回值
 		* `result.isError()`: **(bool)** 是否为错误
@@ -1605,12 +1602,9 @@
 		* `result.lang`: **(vector<string>)** 语言类型
 
 #### 语音识别(异步)
-* `void transcribe(const string& audio, const string& lang, int64_t uid, const string& codec, int32_t srate, std::function<void (TranscribeResult result)> callback, int32_t timeout = 0)`   
+* `void transcribe(const string& audio, int64_t uid, std::function<void (TranscribeResult result)> callback, int32_t timeout = 0)`   
     * `audio`: 语音二进制字符串
-    * `lang`: 语言类型
     * `uid`:  用户id，不需要传0
-    * `codec`:  编码类型
-    * `srate`:  码率
     * `timeout`: 超时时间(s)
     * `TranscribeResult`: 返回值
 		* `result.isError()`: **(bool)** 是否为错误

@@ -197,8 +197,8 @@ namespace rtm
         void translate(const string& text, const string& dst, const string& src, const string& type, const string& profanity, bool postProfanity, int64_t uid, std::function<void (TranslateResult result)> callback, int32_t timeout = 0);
         ProfanityResult profanity(const string& text, bool classify, int64_t uid, int32_t timeout = 0);
         void profanity(const string& text, bool classify, int64_t uid, std::function<void (ProfanityResult result)> callback, int32_t timeout = 0);
-        TranscribeResult transcribe(const string& audio, const string& lang, int64_t uid, const string& codec, int32_t srate, int32_t timeout = 0);
-        void transcribe(const string& audio, const string& lang, int64_t uid, const string& codec, int32_t srate, std::function<void (TranscribeResult result)> callback, int32_t timeout = 0);
+        TranscribeResult transcribe(const string& audio, int64_t uid, int32_t timeout = 0);
+        void transcribe(const string& audio, int64_t uid, std::function<void (TranscribeResult result)> callback, int32_t timeout = 0);
         QuestResult setUserInfo(int64_t uid, string* oinfo, string* pinfo, int32_t timeout = 0);
         void setUserInfo(int64_t uid, string* oinfo, string* pinfo, std::function<void (QuestResult result)> callback, int32_t timeout = 0);
         GetUserInfoResult getUserInfo(int64_t uid, int32_t timeout = 0);
@@ -270,7 +270,7 @@ namespace rtm
                 std::function<void (SendFileResult result)> callback, int64_t& mid, int32_t timeout);
         FPQuestPtr _getTranslateQuest(const string& text, const string& dst, const string& src, const string& type, const string& profanity, bool postProfanity, int64_t uid);
         FPQuestPtr _getProfanityQuest(const string& text, bool classify, int64_t uid);
-        FPQuestPtr _getTranscribeQuest(const string& audio, const string& lang, int64_t uid, const string& codec, int32_t srate);
+        FPQuestPtr _getTranscribeQuest(const string& audio, int64_t uid);
         FPQuestPtr _getSetUserInfoQuest(int64_t uid, string* oinfo, string* pinfo);
         FPQuestPtr _getGetUserInfoQuest(int64_t uid);
         FPQuestPtr _getGetUserOpenInfoQuest(const set<int64_t>& uids);
