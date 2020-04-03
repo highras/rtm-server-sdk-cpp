@@ -29,6 +29,10 @@ namespace rtm
     class RTMServerClient
     {
     public:
+
+        const string VERSION = "0.0.4";
+        const string API_VERSION = "2.0.1";
+
         RTMServerClient(int32_t pid, const string& secret, const string& endpoint, bool reconnect, int32_t timeout, 
                 int32_t duplicateCacheSize = 100000);
         ~RTMServerClient();
@@ -144,18 +148,18 @@ namespace rtm
         void isProjectBlack(int64_t uid, std::function<void (IsProjectBlackResult result)> callback, int32_t timeout = 0);
         FileTokenResult fileToken(int64_t from, const string& cmd, const FileTokenInfo& info, int32_t timeout = 0);
         void fileToken(int64_t from, const string& cmd, const FileTokenInfo& info, std::function<void (FileTokenResult result)> callback, int32_t timeout = 0);
-        GetGroupMessageResult getGroupMessage(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int32_t timeout = 0);
-        void getGroupMessage(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, std::function<void (GetGroupMessageResult result)> callback, int32_t timeout = 0);
-        GetGroupMessageResult getGroupChat(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout = 0);
-        void getGroupChat(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetGroupMessageResult result)> callback, int32_t timeout = 0);
-        GetRoomMessageResult getRoomMessage(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int32_t timeout = 0);
-        void getRoomMessage(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, std::function<void (GetRoomMessageResult result)> callback, int32_t timeout = 0);
-        GetRoomMessageResult getRoomChat(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout = 0);
-        void getRoomChat(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetRoomMessageResult result)> callback, int32_t timeout = 0);
-        GetBroadcastMessageResult getBroadcastMessage(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int32_t timeout = 0);
-        void getBroadcastMessage(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, std::function<void (GetBroadcastMessageResult result)> callback, int32_t timeout = 0);
-        GetBroadcastMessageResult getBroadcastChat(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout = 0);
-        void getBroadcastChat(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetBroadcastMessageResult result)> callback, int32_t timeout = 0);
+        GetGroupMessageResult getGroupMessage(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid, int32_t timeout = 0);
+        void getGroupMessage(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid, std::function<void (GetGroupMessageResult result)> callback, int32_t timeout = 0);
+        GetGroupMessageResult getGroupChat(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int64_t uid, int32_t timeout = 0);
+        void getGroupChat(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int64_t uid, std::function<void (GetGroupMessageResult result)> callback, int32_t timeout = 0);
+        GetRoomMessageResult getRoomMessage(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid, int32_t timeout = 0);
+        void getRoomMessage(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid, std::function<void (GetRoomMessageResult result)> callback, int32_t timeout = 0);
+        GetRoomMessageResult getRoomChat(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int64_t uid, int32_t timeout = 0);
+        void getRoomChat(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int64_t uid, std::function<void (GetRoomMessageResult result)> callback, int32_t timeout = 0);
+        GetBroadcastMessageResult getBroadcastMessage(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid, int32_t timeout = 0);
+        void getBroadcastMessage(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid, std::function<void (GetBroadcastMessageResult result)> callback, int32_t timeout = 0);
+        GetBroadcastMessageResult getBroadcastChat(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int64_t uid, int32_t timeout = 0);
+        void getBroadcastChat(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int64_t uid, std::function<void (GetBroadcastMessageResult result)> callback, int32_t timeout = 0);
         GetP2PMessageResult getP2PMessage(int64_t uid, int64_t ouid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int32_t timeout = 0);
         void getP2PMessage(int64_t uid, int64_t ouid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, std::function<void (GetP2PMessageResult result)> callback, int32_t timeout = 0);
         GetP2PMessageResult getP2PChat(int64_t uid, int64_t ouid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout = 0);
@@ -197,8 +201,8 @@ namespace rtm
         void translate(const string& text, const string& dst, const string& src, const string& type, const string& profanity, bool postProfanity, int64_t uid, std::function<void (TranslateResult result)> callback, int32_t timeout = 0);
         ProfanityResult profanity(const string& text, bool classify, int64_t uid, int32_t timeout = 0);
         void profanity(const string& text, bool classify, int64_t uid, std::function<void (ProfanityResult result)> callback, int32_t timeout = 0);
-        TranscribeResult transcribe(const string& audio, int64_t uid, int32_t timeout = 0);
-        void transcribe(const string& audio, int64_t uid, std::function<void (TranscribeResult result)> callback, int32_t timeout = 0);
+        TranscribeResult transcribe(const string& audio, int64_t uid, bool profanityFilter, int32_t timeout = 0);
+        void transcribe(const string& audio, int64_t uid, bool profanityFilter, std::function<void (TranscribeResult result)> callback, int32_t timeout = 0);
         QuestResult setUserInfo(int64_t uid, string* oinfo, string* pinfo, int32_t timeout = 0);
         void setUserInfo(int64_t uid, string* oinfo, string* pinfo, std::function<void (QuestResult result)> callback, int32_t timeout = 0);
         GetUserInfoResult getUserInfo(int64_t uid, int32_t timeout = 0);
@@ -250,9 +254,9 @@ namespace rtm
         FPQuestPtr _getIsBanOfRoomQuest(int64_t rid, int64_t uid);
         FPQuestPtr _getIsProjectBlackQuest(int64_t uid);
         FPQuestPtr _getFileTokenQuest(int64_t from, const string& cmd, const FileTokenInfo& info);
-        FPQuestPtr _getGetGroupMessageQuest(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes);
-        FPQuestPtr _getGetRoomMessageQuest(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes);
-        FPQuestPtr _getGetBroadcastMessageQuest(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes);
+        FPQuestPtr _getGetGroupMessageQuest(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid);
+        FPQuestPtr _getGetRoomMessageQuest(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid);
+        FPQuestPtr _getGetBroadcastMessageQuest(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid);
         FPQuestPtr _getGetP2PMessageQuest(int64_t uid, int64_t ouid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes);
         FPQuestPtr _getAddRoomMemberQuest(int64_t rid, int64_t uid);
         FPQuestPtr _getDeleteRoomMemberQuest(int64_t rid, int64_t uid);
@@ -270,7 +274,7 @@ namespace rtm
                 std::function<void (SendFileResult result)> callback, int64_t& mid, int32_t timeout);
         FPQuestPtr _getTranslateQuest(const string& text, const string& dst, const string& src, const string& type, const string& profanity, bool postProfanity, int64_t uid);
         FPQuestPtr _getProfanityQuest(const string& text, bool classify, int64_t uid);
-        FPQuestPtr _getTranscribeQuest(const string& audio, int64_t uid);
+        FPQuestPtr _getTranscribeQuest(const string& audio, int64_t uid, bool profanityFilter);
         FPQuestPtr _getSetUserInfoQuest(int64_t uid, string* oinfo, string* pinfo);
         FPQuestPtr _getGetUserInfoQuest(int64_t uid);
         FPQuestPtr _getGetUserOpenInfoQuest(const set<int64_t>& uids);

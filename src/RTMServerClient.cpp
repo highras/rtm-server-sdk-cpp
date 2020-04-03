@@ -2132,13 +2132,13 @@ void RTMServerClient::fileToken(int64_t from, const string& cmd, const FileToken
     }
 }
 
-FPQuestPtr RTMServerClient::_getGetGroupMessageQuest(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes) {
+FPQuestPtr RTMServerClient::_getGetGroupMessageQuest(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid) {
     int32_t ts = slack_real_sec(); 
     string sign; 
     int64_t salt; 
     _makeSignAndSalt(ts, "getgroupmsg", sign, salt); 
 
-    FPQWriter qw(11, "getgroupmsg");
+    FPQWriter qw(12, "getgroupmsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
@@ -2150,12 +2150,13 @@ FPQuestPtr RTMServerClient::_getGetGroupMessageQuest(int64_t gid, bool desc, int
     qw.param("end", end);
     qw.param("lastid", lastId);
     qw.param("mtypes", mtypes);
+    qw.param("uid", uid);
     return qw.take();
 }
 
-GetGroupMessageResult RTMServerClient::getGroupChat(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout)
+GetGroupMessageResult RTMServerClient::getGroupChat(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int64_t uid, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetGroupMessageQuest(gid, desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType});
+    FPQuestPtr quest = _getGetGroupMessageQuest(gid, desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType}, uid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     GetGroupMessageResult result;
@@ -2171,9 +2172,9 @@ GetGroupMessageResult RTMServerClient::getGroupChat(int64_t gid, bool desc, int1
     return result;
 }
 
-void RTMServerClient::getGroupChat(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetGroupMessageResult result)> callback, int32_t timeout)
+void RTMServerClient::getGroupChat(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int64_t uid, std::function<void (GetGroupMessageResult result)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetGroupMessageQuest(gid, desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType});
+    FPQuestPtr quest = _getGetGroupMessageQuest(gid, desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType}, uid);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         GetGroupMessageResult result;
         if (errorCode == FPNN_EC_OK) {
@@ -2197,9 +2198,9 @@ void RTMServerClient::getGroupChat(int64_t gid, bool desc, int16_t num, int64_t 
     }
 }
 
-GetGroupMessageResult RTMServerClient::getGroupMessage(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int32_t timeout)
+GetGroupMessageResult RTMServerClient::getGroupMessage(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetGroupMessageQuest(gid, desc, num, begin, end, lastId, mtypes);
+    FPQuestPtr quest = _getGetGroupMessageQuest(gid, desc, num, begin, end, lastId, mtypes, uid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     GetGroupMessageResult result;
@@ -2215,9 +2216,9 @@ GetGroupMessageResult RTMServerClient::getGroupMessage(int64_t gid, bool desc, i
     return result;
 }
 
-void RTMServerClient::getGroupMessage(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, std::function<void (GetGroupMessageResult result)> callback, int32_t timeout)
+void RTMServerClient::getGroupMessage(int64_t gid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid, std::function<void (GetGroupMessageResult result)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetGroupMessageQuest(gid, desc, num, begin, end, lastId, mtypes);
+    FPQuestPtr quest = _getGetGroupMessageQuest(gid, desc, num, begin, end, lastId, mtypes, uid);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         GetGroupMessageResult result;
         if (errorCode == FPNN_EC_OK) {
@@ -2241,13 +2242,13 @@ void RTMServerClient::getGroupMessage(int64_t gid, bool desc, int16_t num, int64
     }
 }
 
-FPQuestPtr RTMServerClient::_getGetRoomMessageQuest(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes) { 
+FPQuestPtr RTMServerClient::_getGetRoomMessageQuest(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid) { 
     int32_t ts = slack_real_sec(); 
     string sign; 
     int64_t salt; 
     _makeSignAndSalt(ts, "getroommsg", sign, salt); 
     
-    FPQWriter qw(11, "getroommsg");
+    FPQWriter qw(12, "getroommsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
@@ -2259,12 +2260,13 @@ FPQuestPtr RTMServerClient::_getGetRoomMessageQuest(int64_t rid, bool desc, int1
     qw.param("end", end);
     qw.param("lastid", lastId);
     qw.param("mtypes", mtypes);
+    qw.param("uid", uid);
     return qw.take();
 }
 
-GetRoomMessageResult RTMServerClient::getRoomMessage(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int32_t timeout)
+GetRoomMessageResult RTMServerClient::getRoomMessage(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetRoomMessageQuest(rid, desc, num, begin, end, lastId, mtypes);
+    FPQuestPtr quest = _getGetRoomMessageQuest(rid, desc, num, begin, end, lastId, mtypes, uid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     GetRoomMessageResult result;
@@ -2280,9 +2282,9 @@ GetRoomMessageResult RTMServerClient::getRoomMessage(int64_t rid, bool desc, int
     return result;
 }
 
-void RTMServerClient::getRoomMessage(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, std::function<void (GetRoomMessageResult result)> callback, int32_t timeout)
+void RTMServerClient::getRoomMessage(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid, std::function<void (GetRoomMessageResult result)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetRoomMessageQuest(rid, desc, num, begin, end, lastId, mtypes);
+    FPQuestPtr quest = _getGetRoomMessageQuest(rid, desc, num, begin, end, lastId, mtypes, uid);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         GetRoomMessageResult result;
         if (errorCode == FPNN_EC_OK) {
@@ -2306,9 +2308,9 @@ void RTMServerClient::getRoomMessage(int64_t rid, bool desc, int16_t num, int64_
     }
 }
 
-GetRoomMessageResult RTMServerClient::getRoomChat(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout)
+GetRoomMessageResult RTMServerClient::getRoomChat(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int64_t uid, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetRoomMessageQuest(rid, desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType});
+    FPQuestPtr quest = _getGetRoomMessageQuest(rid, desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType}, uid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     GetRoomMessageResult result;
@@ -2324,9 +2326,9 @@ GetRoomMessageResult RTMServerClient::getRoomChat(int64_t rid, bool desc, int16_
     return result;
 }
 
-void RTMServerClient::getRoomChat(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetRoomMessageResult result)> callback, int32_t timeout)
+void RTMServerClient::getRoomChat(int64_t rid, bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int64_t uid, std::function<void (GetRoomMessageResult result)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetRoomMessageQuest(rid, desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType});
+    FPQuestPtr quest = _getGetRoomMessageQuest(rid, desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType}, uid);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         GetRoomMessageResult result;
         if (errorCode == FPNN_EC_OK) {
@@ -2350,13 +2352,13 @@ void RTMServerClient::getRoomChat(int64_t rid, bool desc, int16_t num, int64_t b
     }
 }
 
-FPQuestPtr RTMServerClient::_getGetBroadcastMessageQuest(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes) { 
+FPQuestPtr RTMServerClient::_getGetBroadcastMessageQuest(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid) { 
     int32_t ts = slack_real_sec(); 
     string sign; 
     int64_t salt; 
     _makeSignAndSalt(ts, "getbroadcastmsg", sign, salt); 
     
-    FPQWriter qw(1, "getbroadcastmsg");
+    FPQWriter qw(11, "getbroadcastmsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
@@ -2367,12 +2369,13 @@ FPQuestPtr RTMServerClient::_getGetBroadcastMessageQuest(bool desc, int16_t num,
     qw.param("end", end);
     qw.param("lastid", lastId);
     qw.param("mtypes", mtypes);
+    qw.param("uid", uid);
     return qw.take();
 }
 
-GetBroadcastMessageResult RTMServerClient::getBroadcastMessage(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int32_t timeout)
+GetBroadcastMessageResult RTMServerClient::getBroadcastMessage(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetBroadcastMessageQuest(desc, num, begin, end, lastId, mtypes);
+    FPQuestPtr quest = _getGetBroadcastMessageQuest(desc, num, begin, end, lastId, mtypes, uid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     GetBroadcastMessageResult result;
@@ -2388,9 +2391,9 @@ GetBroadcastMessageResult RTMServerClient::getBroadcastMessage(bool desc, int16_
     return result;
 }
 
-void RTMServerClient::getBroadcastMessage(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, std::function<void (GetBroadcastMessageResult result)> callback, int32_t timeout)
+void RTMServerClient::getBroadcastMessage(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, const set<int8_t>& mtypes, int64_t uid, std::function<void (GetBroadcastMessageResult result)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetBroadcastMessageQuest(desc, num, begin, end, lastId, mtypes);
+    FPQuestPtr quest = _getGetBroadcastMessageQuest(desc, num, begin, end, lastId, mtypes, uid);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         GetBroadcastMessageResult result;
         if (errorCode == FPNN_EC_OK) {
@@ -2414,9 +2417,9 @@ void RTMServerClient::getBroadcastMessage(bool desc, int16_t num, int64_t begin,
     }
 }
 
-GetBroadcastMessageResult RTMServerClient::getBroadcastChat(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int32_t timeout)
+GetBroadcastMessageResult RTMServerClient::getBroadcastChat(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int64_t uid, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetBroadcastMessageQuest(desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType});
+    FPQuestPtr quest = _getGetBroadcastMessageQuest(desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType}, uid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     GetBroadcastMessageResult result;
@@ -2432,9 +2435,9 @@ GetBroadcastMessageResult RTMServerClient::getBroadcastChat(bool desc, int16_t n
     return result;
 }
 
-void RTMServerClient::getBroadcastChat(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, std::function<void (GetBroadcastMessageResult result)> callback, int32_t timeout)
+void RTMServerClient::getBroadcastChat(bool desc, int16_t num, int64_t begin, int64_t end, int64_t lastId, int64_t uid, std::function<void (GetBroadcastMessageResult result)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getGetBroadcastMessageQuest(desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType});
+    FPQuestPtr quest = _getGetBroadcastMessageQuest(desc, num, begin, end, lastId, {TextChatMType, AudioChatMType, CmdChatMType}, uid);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         GetBroadcastMessageResult result;
         if (errorCode == FPNN_EC_OK) {
@@ -3483,14 +3486,14 @@ void RTMServerClient::profanity(const string& text, bool classify, int64_t uid, 
     }
 }
 
-FPQuestPtr RTMServerClient::_getTranscribeQuest(const string& audio, int64_t uid)
+FPQuestPtr RTMServerClient::_getTranscribeQuest(const string& audio, int64_t uid, bool profanityFilter)
 {
     int32_t ts = slack_real_sec(); 
     string sign;
     int64_t salt;
     _makeSignAndSalt(ts, "transcribe", sign, salt);
 
-    int32_t size = 5;
+    int32_t size = 6;
     if (uid > 0)
         ++size;
 
@@ -3500,6 +3503,7 @@ FPQuestPtr RTMServerClient::_getTranscribeQuest(const string& audio, int64_t uid
     qw.param("salt", salt);
     qw.param("ts", ts);
     qw.param("audio", audio);
+    qw.param("profanityFilter", profanityFilter);
 
     if (uid > 0)
         qw.param("uid", uid);
@@ -3507,9 +3511,9 @@ FPQuestPtr RTMServerClient::_getTranscribeQuest(const string& audio, int64_t uid
     return qw.take();
 }
 
-TranscribeResult RTMServerClient::transcribe(const string& audio, int64_t uid, int32_t timeout)
+TranscribeResult RTMServerClient::transcribe(const string& audio, int64_t uid, bool profanityFilter, int32_t timeout)
 {
-    FPQuestPtr quest = _getTranscribeQuest(audio, uid);
+    FPQuestPtr quest = _getTranscribeQuest(audio, uid, profanityFilter);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     TranscribeResult result;
@@ -3522,9 +3526,9 @@ TranscribeResult RTMServerClient::transcribe(const string& audio, int64_t uid, i
     return result;
 }
 
-void RTMServerClient::transcribe(const string& audio, int64_t uid, std::function<void (TranscribeResult result)> callback, int32_t timeout)
+void RTMServerClient::transcribe(const string& audio, int64_t uid, bool profanityFilter, std::function<void (TranscribeResult result)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getTranscribeQuest(audio, uid);
+    FPQuestPtr quest = _getTranscribeQuest(audio, uid, profanityFilter);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         TranscribeResult result;
         if (errorCode == FPNN_EC_OK) {
