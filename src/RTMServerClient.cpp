@@ -3534,9 +3534,20 @@ bool RTMServerClient::_getTranscribeCache(const char* buffer, size_t length, str
 TranscribeResult RTMServerClient::transcribe(const string& audio, int64_t uid, bool profanityFilter, int32_t timeout)
 {
     TranscribeResult result;
-    if (_getTranscribeCache(audio.c_str(), audio.size(), result.text, result.lang)) 
-        return result;
-
+    if (_getTranscribeCache(audio.c_str(), audio.size(), result.text, result.lang)) {
+        if (profanityFilter) {
+            ProfanityResult profanityResult = profanity(result.text, false, uid, timeout);
+            if (!profanityResult.isError()) {
+                result.text = profanityResult.text;
+            } else {
+                result.errorCode = profanityResult.errorCode;
+                result.errorInfo = profanityResult.errorInfo;
+            }
+            return result;
+        } else
+            return result;
+    }
+        
     FPQuestPtr quest = _getTranscribeQuest(audio, uid, profanityFilter);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
     if (!_checkAnswerError(answer, result))
@@ -3553,8 +3564,22 @@ void RTMServerClient::transcribe(const string& audio, int64_t uid, bool profanit
     TranscribeResult result;
     if (_getTranscribeCache(audio.c_str(), audio.size(), result.text, result.lang)) 
     {
-        callback(result);
-        return;
+        if (profanityFilter) {
+            profanity(result.text, false, uid, [callback](ProfanityResult profanityResult) {
+                TranscribeResult result;
+                if (!profanityResult.isError()) {
+                    result.text = profanityResult.text;
+                } else {
+                    result.errorCode = profanityResult.errorCode;
+                    result.errorInfo = profanityResult.errorInfo;
+                }
+                callback(result);
+            }, timeout);
+            return;
+        } else {
+            callback(result);
+            return;
+        }
     }
 
     FPQuestPtr quest = _getTranscribeQuest(audio, uid, profanityFilter);
