@@ -3511,12 +3511,34 @@ FPQuestPtr RTMServerClient::_getTranscribeQuest(const string& audio, int64_t uid
     return qw.take();
 }
 
+bool RTMServerClient::_getTranscribeCache(const char* buffer, size_t length, string& text, string& lang) 
+{
+    if (length < 8)
+		return false;
+    int8_t infoDataCount = uint8_t(*(buffer + 3));
+    if (infoDataCount == 0)
+        return false;
+    uint32_t sectionLength = uint32_t(*(buffer + 4)) 
+                            | (uint32_t(*(buffer + 5)) << 8) 
+                            | (uint32_t(*(buffer + 6)) << 16) 
+                            | (uint32_t(*(buffer + 7)) << 24);
+    if (sectionLength + 8 >= length)
+        return false;
+    string payload = string(buffer + 8, sectionLength);
+    FPReaderPtr reader(new FPReader(payload));
+    text = reader->getString("rtext");
+    lang = reader->getString("rlang");
+    return text.size() && lang.size();
+}
+
 TranscribeResult RTMServerClient::transcribe(const string& audio, int64_t uid, bool profanityFilter, int32_t timeout)
 {
+    TranscribeResult result;
+    if (_getTranscribeCache(audio.c_str(), audio.size(), result.text, result.lang)) 
+        return result;
+
     FPQuestPtr quest = _getTranscribeQuest(audio, uid, profanityFilter);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
-
-    TranscribeResult result;
     if (!_checkAnswerError(answer, result))
     {
         FPAReader ar(answer);
@@ -3528,6 +3550,13 @@ TranscribeResult RTMServerClient::transcribe(const string& audio, int64_t uid, b
 
 void RTMServerClient::transcribe(const string& audio, int64_t uid, bool profanityFilter, std::function<void (TranscribeResult result)> callback, int32_t timeout)
 {
+    TranscribeResult result;
+    if (_getTranscribeCache(audio.c_str(), audio.size(), result.text, result.lang)) 
+    {
+        callback(result);
+        return;
+    }
+
     FPQuestPtr quest = _getTranscribeQuest(audio, uid, profanityFilter);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         TranscribeResult result;

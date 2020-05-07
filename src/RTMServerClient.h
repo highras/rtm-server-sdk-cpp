@@ -30,7 +30,7 @@ namespace rtm
     {
     public:
 
-        const string VERSION = "0.0.4";
+        const string VERSION = "0.0.5";
         const string API_VERSION = "2.0.1";
 
         RTMServerClient(int32_t pid, const string& secret, const string& endpoint, bool reconnect, int32_t timeout, 
@@ -283,6 +283,7 @@ namespace rtm
         FPQuestPtr _getSetRoomInfoQuest(int64_t rid, string* oinfo, string* pinfo);
         FPQuestPtr _getGetRoomInfoQuest(int64_t rid);
         FPQuestPtr _getGetMessageQuest(int64_t mid, int64_t from, int64_t xid, int8_t type);
+        bool _getTranscribeCache(const char* buffer, size_t length, string& text, string& lang);
 
         TCPClientPtr _client;
         int32_t _pid;
