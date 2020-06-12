@@ -30,8 +30,8 @@ namespace rtm
     {
     public:
 
-        const string VERSION = "0.0.5";
-        const string API_VERSION = "2.0.1";
+        const string VERSION = "1.0.0";
+        const string API_VERSION = "2.1.0";
 
         RTMServerClient(int32_t pid, const string& secret, const string& endpoint, bool reconnect, int32_t timeout, 
                 int32_t duplicateCacheSize = 100000);
@@ -112,6 +112,16 @@ namespace rtm
         void isFriend(int64_t uid, int64_t fuid, std::function<void (IsFriendResult result)> callback, int32_t timeout = 0);
         IsFriendsResult isFriends(int64_t uid, const set<int64_t>& fuids, int32_t timeout = 0);
         void isFriends(int64_t uid, const set<int64_t>& fuids, std::function<void (IsFriendsResult result)> callback, int32_t timeout = 0);
+        QuestResult addBlacks(int64_t uid, const set<int64_t>& blacks, int32_t timeout = 0);
+        void addBlacks(int64_t uid, const set<int64_t>& blacks, std::function<void (QuestResult result)> callback, int32_t timeout = 0);
+        QuestResult deleteBlacks(int64_t uid, const set<int64_t>& blacks, int32_t timeout = 0);
+        void deleteBlacks(int64_t uid, const set<int64_t>& blacks, std::function<void (QuestResult result)> callback, int32_t timeout = 0);
+        IsFriendResult isBlack(int64_t uid, int64_t buid, int32_t timeout = 0);
+        void isBlack(int64_t uid, int64_t buid, std::function<void (IsFriendResult result)> callback, int32_t timeout = 0);
+        IsBlacksResult isBlacks(int64_t uid, const set<int64_t>& buids, int32_t timeout = 0);
+        void isBlacks(int64_t uid, const set<int64_t>& buids, std::function<void (IsBlacksResult result)> callback, int32_t timeout = 0);
+        GetBlacksResult getBlacks(int64_t uid, int32_t timeout = 0);
+        void getBlacks(int64_t uid, std::function<void (GetBlacksResult result)> callback, int32_t timeout = 0);
         QuestResult addGroupMembers(int64_t gid, const set<int64_t>& uids, int32_t timeout = 0);
         void addGroupMembers(int64_t gid, const set<int64_t>& uids, std::function<void (QuestResult result)> callback, int32_t timeout = 0);
         QuestResult deleteGroupMembers(int64_t gid, const set<int64_t>& uids, int32_t timeout = 0);
@@ -236,6 +246,11 @@ namespace rtm
         FPQuestPtr _getGetFriendsQuest(int64_t uid);
         FPQuestPtr _getIsFriendQuest(int64_t uid, int64_t fuid);
         FPQuestPtr _getIsFriendsQuest(int64_t uid, const set<int64_t>& fuids);
+        FPQuestPtr _getAddBlacksQuest(int64_t uid, const set<int64_t>& blacks);
+        FPQuestPtr _getDeleteBlacksQuest(int64_t uid, const set<int64_t>& blacks);
+        FPQuestPtr _getIsBlackQuest(int64_t uid, int64_t buid);
+        FPQuestPtr _getGetBlacksQuest(int64_t uid);
+        FPQuestPtr _getIsBlacksQuest(int64_t uid, const set<int64_t>& buids);
         FPQuestPtr _getAddGroupMembersQuest(int64_t gid, const set<int64_t>& uids);
         FPQuestPtr _getDeleteGroupMembersQuest(int64_t gid, const set<int64_t>& uids);
         FPQuestPtr _getDeleteGroupQuest(int64_t gid);

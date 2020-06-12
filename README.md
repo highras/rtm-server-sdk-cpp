@@ -14,10 +14,12 @@
 1. release
 
 		sh release.sh
-
+    
+    
 ### 注意
 
 * 使用之前请确保服务器时间校准，否则可能导致签名失败
+
 
 ### 开发
 ```
@@ -386,14 +388,14 @@
 		* `result.uids`: **(set<int64>)** 好友列表
     
 #### 获取好友(异步)
-* `void deleteFriends(int64_t uid, const set<int64_t>& friends, std::function<void (QuestResult result)> callback, int32_t timeout = 0)`   
+* `void getFriends(int64_t uid, std::function<void (GetFriendsResult result)> callback, int32_t timeout)`   
     * `uid`: 用户id
-    * `friends`: 多个好友id
     * `timeout`: 超时时间(s)
-    * `QuestResult`: 返回值
+    * `GetFriendsResult`: 返回值
 		* `result.isError()`: **(bool)** 是否为错误
 		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
 		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.uids`: **(set<int64>)** 好友列表
 		
 #### 判断好友关系(同步)
 * `IsFriendResult isFriend(int64_t uid, int64_t fuid, int32_t timeout = 0)`
@@ -439,6 +441,111 @@
 		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
 		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
 		* `result.fuids`: **(set<int64_t>)** 好友列表
+
+#### 拉黑用户，每次最多添加100人，拉黑后对方不能给自己发消息，自己可以给对方发，双方能正常获取session及历史消息
+* `QuestResult addBlacks(int64_t uid, const set<int64_t>& blacks, int32_t timeout = 0)`
+    * `uid`: 用户id
+    * `blacks`: 多个好友id
+    * `timeout`: 超时时间(s)
+    * `QuestResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+    
+#### 拉黑用户，每次最多添加100人，拉黑后对方不能给自己发消息，自己可以给对方发，双方能正常获取session及历史消息
+* `void addBlacks(int64_t uid, const set<int64_t>& blacks, std::function<void (QuestResult result)> callback, int32_t timeout = 0)`   
+    * `uid`: 用户id
+    * `blacks`: 多个好友id
+    * `timeout`: 超时时间(s)
+    * `QuestResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+    
+#### 解除拉黑，每次最多解除100人
+* `QuestResult deleteBlacks(int64_t uid, const set<int64_t>& blacks, int32_t timeout = 0)`
+    * `uid`: 用户id
+    * `blacks`: 多个好友id
+    * `timeout`: 超时时间(s)
+    * `QuestResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+    
+#### 解除拉黑，每次最多解除100人
+* `void deleteBlacks(int64_t uid, const set<int64_t>& blacks, std::function<void (QuestResult result)> callback, int32_t timeout = 0)`   
+    * `uid`: 用户id
+    * `blacks`: 多个好友id
+    * `timeout`: 超时时间(s)
+    * `QuestResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		
+#### 获取被我(uid)拉黑的用户列表(同步)
+* `GetBlacksResult getBlacks(int64_t uid, int32_t timeout = 0)`
+    * `uid`: 用户id
+    * `timeout`: 超时时间(s)
+    * `GetBlacksResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.uids`: **(set<int64>)** 黑名单好友列表
+    
+#### 获取被我(uid)拉黑的用户列表(异步)
+* `void getBlacks(int64_t uid, std::function<void (GetBlacksResult result)> callback, int32_t timeout)`   
+    * `uid`: 用户id
+    * `timeout`: 超时时间(s)
+    * `GetBlacksResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.uids`: **(set<int64>)** 黑名单好友列表
+		
+#### 判断拉黑关系，uid是否被buid的用户拉黑，用在发送单人消息的时候(同步)
+* `IsBlackResult isFriend(int64_t uid, int64_t buid, int32_t timeout = 0)`
+    * `uid`: 用户id
+    * `buid`: 对方用户id
+    * `timeout`: 超时时间(s)
+    * `IsBlackResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.ok`: **(bool)** 是否为黑名单好友关系
+    
+#### 判断拉黑关系，uid是否被buid的用户拉黑，用在发送单人消息的时候(异步)
+* `void isBlack(int64_t uid, int64_t buid, std::function<void (IsBlackResult result)> callback, int32_t timeout = 0)`   
+* `uid`: 用户id
+    * `buid`: 对方用户id
+    * `timeout`: 超时时间(s)
+    * `IsBlackResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.ok`: **(bool)** 是否为黑名单好友关系
+		
+#### 判断拉黑关系，每次最多获取100人的好友关系，uid是否被buids中的用户拉黑，用在发送多人消息的时候(同步)
+* `IsBlacksResult isBlacks(int64_t uid, const set<int64_t>& buids, int32_t timeout = 0)`
+    * `uid`: 用户id
+    * `buids`: 对方用户id列表
+    * `timeout`: 超时时间(s)
+    * `IsBlacksResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.buids`: **(set<int64_t>)** 黑名单好友列表
+    
+#### 判断拉黑关系，每次最多获取100人的好友关系，uid是否被buids中的用户拉黑，用在发送多人消息的时候(异步)
+* `void isBlacks(int64_t uid, const set<int64_t>& buids, std::function<void (IsBlacksResult result)> callback, int32_t timeout = 0)`   
+* `uid`: 用户id
+    * `uid`: 用户id
+    * `buids`: 对方用户id列表
+    * `timeout`: 超时时间(s)
+    * `IsBlacksResult`: 返回值
+		* `result.isError()`: **(bool)** 是否为错误
+		* `result.errorCode`: **(int32_t)** 错误码，当为错误时有效
+		* `result.errorInfo`: **(string)** 错误描述，当为错误时有效
+		* `result.buids`: **(set<int64_t>)** 黑名单好友列表
 		
 #### 添加group成员, 每次最多添加100人(同步)
 * `QuestResult addGroupMembers(int64_t gid, const set<int64_t>& uids, int32_t timeout = 0)`

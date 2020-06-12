@@ -38,6 +38,11 @@ namespace rtm
         set<int64_t> uids;
     };
 
+    struct GetBlacksResult: QuestResult
+    {
+        set<int64_t> uids;
+    };
+
     struct IsFriendResult: QuestResult
     {
         bool ok;
@@ -46,6 +51,11 @@ namespace rtm
     struct IsFriendsResult: QuestResult
     {
         set<int64_t> fuids;
+    };
+
+    struct IsBlacksResult: QuestResult
+    {
+        set<int64_t> buids;
     };
 
     struct GetGroupMembersResult: QuestResult

@@ -1029,6 +1029,52 @@ void RTMServerClient::addFriends(int64_t uid, const set<int64_t>& friends, std::
     }
 }
 
+FPQuestPtr RTMServerClient::_getAddBlacksQuest(int64_t uid, const set<int64_t>& blacks)
+{
+    int32_t ts = slack_real_sec();
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "addblacks", sign, salt);
+
+    FPQWriter qw(6, "addblacks");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("uid", uid);
+    qw.param("blacks", blacks);
+    return qw.take();
+}
+
+QuestResult RTMServerClient::addBlacks(int64_t uid, const set<int64_t>& blacks, int32_t timeout)
+{
+    FPQuestPtr quest = _getAddBlacksQuest(uid, blacks);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    QuestResult result;
+    _checkAnswerError(answer, result);
+    return result;
+}
+
+void RTMServerClient::addBlacks(int64_t uid, const set<int64_t>& blacks, std::function<void (QuestResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getAddBlacksQuest(uid, blacks);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        QuestResult result;
+        if (errorCode != FPNN_EC_OK)
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        QuestResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
 FPQuestPtr RTMServerClient::_getDeleteFriendsQuest(int64_t uid, const set<int64_t>& friends)
 {
     int32_t ts = slack_real_sec();
@@ -1059,6 +1105,52 @@ QuestResult RTMServerClient::deleteFriends(int64_t uid, const set<int64_t>& frie
 void RTMServerClient::deleteFriends(int64_t uid, const set<int64_t>& friends, std::function<void (QuestResult result)> callback, int32_t timeout)
 {
     FPQuestPtr quest = _getDeleteFriendsQuest(uid, friends);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        QuestResult result;
+        if (errorCode != FPNN_EC_OK)
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        QuestResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+FPQuestPtr RTMServerClient::_getDeleteBlacksQuest(int64_t uid, const set<int64_t>& blacks)
+{
+    int32_t ts = slack_real_sec();
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "delblacks", sign, salt);
+
+    FPQWriter qw(6, "delblacks");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("uid", uid);
+    qw.param("blacks", blacks);
+    return qw.take();
+}
+
+QuestResult RTMServerClient::deleteBlacks(int64_t uid, const set<int64_t>& blacks, int32_t timeout)
+{
+    FPQuestPtr quest = _getDeleteBlacksQuest(uid, blacks);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    QuestResult result;
+    _checkAnswerError(answer, result);
+    return result;
+}
+
+void RTMServerClient::deleteBlacks(int64_t uid, const set<int64_t>& blacks, std::function<void (QuestResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getDeleteBlacksQuest(uid, blacks);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
         if (errorCode != FPNN_EC_OK)
@@ -1127,26 +1219,78 @@ void RTMServerClient::getFriends(int64_t uid, std::function<void (GetFriendsResu
     }
 }
 
-FPQuestPtr RTMServerClient::_getIsFriendQuest(int64_t uid, int64_t fuid)
+FPQuestPtr RTMServerClient::_getGetBlacksQuest(int64_t uid)
 {
     int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(ts, "isfriend", sign, salt);
+    _makeSignAndSalt(ts, "getblacks", sign, salt);
 
-    FPQWriter qw(6, "isfriend");
+    FPQWriter qw(5, "getblacks");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
     qw.param("ts", ts);
     qw.param("uid", uid);
-    qw.param("fuid", fuid);
     return qw.take();
 }
 
-IsFriendResult RTMServerClient::isFriend(int64_t uid, int64_t fuid, int32_t timeout)
+GetBlacksResult RTMServerClient::getBlacks(int64_t uid, int32_t timeout)
 {
-    FPQuestPtr quest = _getIsFriendQuest(uid, fuid);  
+    FPQuestPtr quest = _getGetBlacksQuest(uid);  
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    GetBlacksResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        result.uids = ar.get("uids", result.uids);
+    }
+    return result;
+}
+
+void RTMServerClient::getBlacks(int64_t uid, std::function<void (GetBlacksResult result)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetBlacksQuest(uid);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        GetBlacksResult result;
+        if (errorCode == FPNN_EC_OK) {
+            FPAReader ar(answer);
+            result.uids = ar.get("uids", result.uids);
+        } else
+            _checkAnswerError(answer, result); 
+        callback(result);
+    }, timeout);
+
+    if (!status)
+    {
+        GetBlacksResult result;
+        result.errorCode = -1;
+        result.errorInfo = "socket maybe closed";
+        callback(result);
+    }
+}
+
+FPQuestPtr RTMServerClient::_getIsBlackQuest(int64_t uid, int64_t buid)
+{
+    int32_t ts = slack_real_sec();
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "isblack", sign, salt);
+
+    FPQWriter qw(6, "isblack");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("uid", uid);
+    qw.param("buid", buid);
+    return qw.take();
+}
+
+IsFriendResult RTMServerClient::isBlack(int64_t uid, int64_t buid, int32_t timeout)
+{
+    FPQuestPtr quest = _getIsBlackQuest(uid, buid);  
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     IsFriendResult result;
@@ -1158,9 +1302,9 @@ IsFriendResult RTMServerClient::isFriend(int64_t uid, int64_t fuid, int32_t time
     return result;
 }
 
-void RTMServerClient::isFriend(int64_t uid, int64_t fuid, std::function<void (IsFriendResult result)> callback, int32_t timeout)
+void RTMServerClient::isBlack(int64_t uid, int64_t buid, std::function<void (IsFriendResult result)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getIsFriendQuest(uid, fuid);
+    FPQuestPtr quest = _getIsBlackQuest(uid, buid);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         IsFriendResult result;
         if (errorCode == FPNN_EC_OK) {
@@ -1180,45 +1324,45 @@ void RTMServerClient::isFriend(int64_t uid, int64_t fuid, std::function<void (Is
     }
 }
 
-FPQuestPtr RTMServerClient::_getIsFriendsQuest(int64_t uid, const set<int64_t>& fuids)
+FPQuestPtr RTMServerClient::_getIsBlacksQuest(int64_t uid, const set<int64_t>& buids)
 {
     int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
-    _makeSignAndSalt(ts, "isfriends", sign, salt);
+    _makeSignAndSalt(ts, "isblacks", sign, salt);
 
-    FPQWriter qw(6, "isfriends");
+    FPQWriter qw(6, "isblacks");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
     qw.param("ts", ts);
     qw.param("uid", uid);
-    qw.param("fuids", fuids);
+    qw.param("buids", buids);
     return qw.take();
 }
 
-IsFriendsResult RTMServerClient::isFriends(int64_t uid, const set<int64_t>& fuids, int32_t timeout)
+IsBlacksResult RTMServerClient::isBlacks(int64_t uid, const set<int64_t>& buids, int32_t timeout)
 {
-    FPQuestPtr quest = _getIsFriendsQuest(uid, fuids);  
+    FPQuestPtr quest = _getIsBlacksQuest(uid, buids);  
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
-    IsFriendsResult result;
+    IsBlacksResult result;
     if (!_checkAnswerError(answer, result))
     {
         FPAReader ar(answer);
-        result.fuids = ar.get("fuids", result.fuids);
+        result.buids = ar.get("buids", result.buids);
     }
     return result;
 }
 
-void RTMServerClient::isFriends(int64_t uid, const set<int64_t>& fuids, std::function<void (IsFriendsResult result)> callback, int32_t timeout)
+void RTMServerClient::isBlacks(int64_t uid, const set<int64_t>& buids, std::function<void (IsBlacksResult result)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getIsFriendsQuest(uid, fuids);
+    FPQuestPtr quest = _getIsBlacksQuest(uid, buids);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
-        IsFriendsResult result;
+        IsBlacksResult result;
         if (errorCode == FPNN_EC_OK) {
             FPAReader ar(answer);
-            result.fuids = ar.get("fuids", result.fuids);
+            result.buids = ar.get("buids", result.buids);
         } else
             _checkAnswerError(answer, result); 
         callback(result);
@@ -1226,7 +1370,7 @@ void RTMServerClient::isFriends(int64_t uid, const set<int64_t>& fuids, std::fun
 
     if (!status)
     {
-        IsFriendsResult result;
+        IsBlacksResult result;
         result.errorCode = -1;
         result.errorInfo = "socket maybe closed";
         callback(result);
@@ -3547,7 +3691,7 @@ TranscribeResult RTMServerClient::transcribe(const string& audio, int64_t uid, b
         } else
             return result;
     }
-        
+
     FPQuestPtr quest = _getTranscribeQuest(audio, uid, profanityFilter);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
     if (!_checkAnswerError(answer, result))
