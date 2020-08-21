@@ -3,29 +3,30 @@
 #include <mutex>
 #include "fpnn.h"
 #include "LruHashMap.h"
-#include "RTMServerMonitor.h"
+#include "RTMServerPushMonitor.h"
+#include "RTMStructures.h"
 
 namespace rtm 
 {
     using namespace std;
     using namespace fpnn;
 
-    enum MessageType {
-        P2PMessage = 0,
-        GroupMessage = 1,
-        RoomMessage = 2,
-        P2PFile = 3,
-        GroupFile = 4,
-        RoomFile = 5,
-        P2PChat = 6,
-        GroupChat = 7,
-        RoomChat = 8,
-        P2PAudio = 9,
-        GroupAudio = 10,
-        RoomAudio = 11,
-        P2PCmd = 12,
-        GroupCmd = 13,
-        RoomCmd = 14,
+    enum PushMessageType {
+        PT_P2PMessage = 0,
+        PT_GroupMessage = 1,
+        PT_RoomMessage = 2,
+        PT_P2PFile = 3,
+        PT_GroupFile = 4,
+        PT_RoomFile = 5,
+        PT_P2PChat = 6,
+        PT_GroupChat = 7,
+        PT_RoomChat = 8,
+        PT_P2PAudio = 9,
+        PT_GroupAudio = 10,
+        PT_RoomAudio = 11,
+        PT_P2PCmd = 12,
+        PT_GroupCmd = 13,
+        PT_RoomCmd = 14,
     };
 
     struct MessageDuplicateKey
@@ -35,7 +36,7 @@ namespace rtm
         int64_t mid;
         int64_t type;
 
-        MessageDuplicateKey(int64_t f, int64_t t, int64_t m, MessageType mt): from(f), to(t), mid(m) 
+        MessageDuplicateKey(int64_t f, int64_t t, int64_t m, PushMessageType mt): from(f), to(t), mid(m) 
         {
             type = int64_t(mt);  
         }
@@ -69,14 +70,17 @@ namespace rtm
     {
         QuestProcessorClassPrivateFields(RTMProcessor)
 
-        shared_ptr<RTMServerMonitor> _serverMonitor;
+        shared_ptr<RTMServerPushMonitor> _serverMonitor;
         mutex _duplicateCacheLock;
         MessageDuplicateCacheMap* _duplicateCache;
+        std::function<void (const ConnectionInfo& connInfo)> _connectedCallback;
+        std::function<void (const ConnectionInfo& connInfo, bool closeByError)> _willCloseCallback;
 
-        bool _checkDuplicate(MessageType msgType, int64_t from, int64_t to, int64_t mid);
+        bool _checkDuplicate(PushMessageType msgType, int64_t from, int64_t to, int64_t mid);
+        RTMMessage _buildRTMMessage(const FPReaderPtr args);
 
     public:
-        void setServerMonitor(shared_ptr<RTMServerMonitor> serverMonitor) { _serverMonitor = serverMonitor; }
+        void setServerMonitor(shared_ptr<RTMServerPushMonitor> serverMonitor) { _serverMonitor = serverMonitor; }
 
         virtual void connected(const ConnectionInfo& connInfo);
         virtual void connectionWillClose(const ConnectionInfo& connInfo, bool closeByError);
@@ -85,41 +89,22 @@ namespace rtm
         FPAnswerPtr pushRoommMessageAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
         FPAnswerPtr pushEventAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
         FPAnswerPtr pingAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
-        FPAnswerPtr pushP2PFileAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
-        FPAnswerPtr pushGroupFileAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
-        FPAnswerPtr pushRoomFileAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
-        FPAnswerPtr pushP2PChatAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
-        FPAnswerPtr pushGroupChatAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
-        FPAnswerPtr pushRoomChatAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
-        FPAnswerPtr pushP2PAudioAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
-        FPAnswerPtr pushGroupAudioAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
-        FPAnswerPtr pushRoomAudioAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
-        FPAnswerPtr pushP2PCmdAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
-        FPAnswerPtr pushGroupCmdAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
-        FPAnswerPtr pushRoomCmdAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
-
-        RTMProcessor(int32_t duplicateCacheSize)
+        
+        void rtmConnectedCallback(const string& endpoint, bool connected, bool isReconnect);
+        void rtmClosedCallback(const string& endpoint, bool causedByError, bool isReconnect);
+        
+        RTMProcessor(int32_t duplicateCacheSize, std::function<void (const ConnectionInfo& connInfo)> connectedCallback, std::function<void (const ConnectionInfo& connInfo, bool closeByError)> willCloseCallback)
         {
             _serverMonitor = nullptr;
-            _duplicateCache = new MessageDuplicateCacheMap(duplicateCacheSize); 
+            _duplicateCache = new MessageDuplicateCacheMap(duplicateCacheSize);
+            _connectedCallback = connectedCallback;
+            _willCloseCallback = willCloseCallback;
 
             registerMethod("pushmsg", &RTMProcessor::pushP2PMessageAction);
             registerMethod("pushgroupmsg", &RTMProcessor::pushGroupMessageAction);
             registerMethod("pushroommsg", &RTMProcessor::pushRoommMessageAction);
             registerMethod("pushevent", &RTMProcessor::pushEventAction);
             registerMethod("ping", &RTMProcessor::pingAction);
-            registerMethod("pushfile", &RTMProcessor::pushP2PFileAction);
-            registerMethod("pushgroupfile", &RTMProcessor::pushGroupFileAction);
-            registerMethod("pushroomfile", &RTMProcessor::pushRoomFileAction);
-            registerMethod("pushchat", &RTMProcessor::pushP2PChatAction);
-            registerMethod("pushgroupchat", &RTMProcessor::pushGroupChatAction);
-            registerMethod("pushroomchat", &RTMProcessor::pushRoomChatAction);
-            registerMethod("pushaudio", &RTMProcessor::pushP2PAudioAction);
-            registerMethod("pushgroupaudio", &RTMProcessor::pushGroupAudioAction);
-            registerMethod("pushroomaudio", &RTMProcessor::pushRoomAudioAction);
-            registerMethod("pushcmd", &RTMProcessor::pushP2PCmdAction);
-            registerMethod("pushgroupcmd", &RTMProcessor::pushGroupCmdAction);
-            registerMethod("pushroomcmd", &RTMProcessor::pushRoomCmdAction);
         }
 
         ~RTMProcessor()
