@@ -51,12 +51,18 @@ namespace rtm
         int64_t mtime;
         MSGPACK_DEFINE(id, direction, mtype, mid, deleted, msg, attrs, mtime);
     };
-    
-    enum ChatMessageType 
+
+    enum ChatMessageType
     {
         TextChatMType = 30,
         AudioChatMType = 31,
         CmdChatMType = 32,
+        RealAudioType = 35,
+        RealVideoType = 36,
+        ImageFileType = 40,
+        AudioFileType = 41,
+        VideoFileType = 42,
+        NormalFileType = 50
     };
 
     enum FileTokenType
@@ -85,29 +91,39 @@ namespace rtm
         set<int64_t> toIds;
     };
 
-    struct RetrievedMessage
-    {
-        int64_t cursorId;
-        int8_t messageType;
-        string message;
-        string attrs;
-        int64_t modifiedTime;
-    };
-
-    struct AudioInfo
-    {
-        string sourceLanguage;
-        string recognizedLanguage;
-        string recognizedText;
-        int32_t duration;
-    };
-
     struct TranslatedInfo
     {
         string sourceLanguage;
         string targetLanguage;
         string sourceText;
         string targetText;
+    };
+
+    struct FileInfo
+    {
+        FileInfo(): url(""), surl(""), language(""), size(0), duration(0), isRTMAudio(false){}
+        string url;
+        string surl;
+        string language;
+        int32_t size;
+        int32_t duration;
+        bool isRTMAudio;
+    };
+
+    struct CheckResult
+    {
+        CheckResult() : result(0) {}
+        int32_t result;
+        vector<int32_t> tags;
+    };
+
+    struct TextCheckResult
+    {
+        TextCheckResult() : result(0) {}
+        string text;
+        int32_t result;
+        vector<string> wlist;
+        vector<int32_t> tags;
     };
 
     struct RTMMessage
@@ -119,11 +135,16 @@ namespace rtm
         string message;
         string attrs;
         int64_t modifiedTime;
-        shared_ptr<AudioInfo> audioInfo;
         shared_ptr<TranslatedInfo> translatedInfo;
+        shared_ptr<FileInfo> fileInfo;
     };
 
     struct HistoryMessage : RTMMessage
+    {
+        int64_t cursorId;
+    };
+
+    struct RetrievedMessage : RTMMessage
     {
         int64_t cursorId;
     };
@@ -205,22 +226,6 @@ namespace rtm
             default:      return "";
         }
     }
-
-    inline shared_ptr<AudioInfo> buildAudioInfo(const string& message)
-    {
-        try {
-            shared_ptr<AudioInfo> audioInfo(new AudioInfo);
-            JsonPtr json = Json::parse(message.c_str());
-            audioInfo->sourceLanguage = json->wantString("sl");
-            audioInfo->recognizedLanguage = json->wantString("rl");
-            audioInfo->recognizedText = json->wantString("rt");
-            audioInfo->duration = json->wantInt("du");
-            return audioInfo;
-        } catch (...) {
-            return nullptr;
-        }
-    }
-
 }
 
 #endif

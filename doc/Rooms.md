@@ -14,32 +14,32 @@
 	//-- Async Method
 	void addRoomBan(int64_t roomId, int64_t userId, int32_t banTime, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-添加房间封禁
+Ban Room Member
 
-参数:
+Parameters:
 
 + `roomId` 
 
-  房间id
+  room id, if 0 is setted, all the rooms will be banned for this user
 
 + `userId` 
 
-  用户id
+  user id
 
 + `banTime` 
 
-  封禁时间
+  ban time
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
 
 
 
@@ -51,28 +51,28 @@
 	//-- Async Method
 	void removeRoomBan(int64_t roomId, int64_t userId, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-删除房间封禁
+Unban Room Member
 
-参数:
+Parameters:
 
 + `roomId` 
 
-  群组id
+  room id, if 0 is setted, all the rooms will remove ban for this user
 
 + `userId` 
 
-  用户id
+  user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
 
 
 
@@ -84,30 +84,30 @@
 	//-- Async Method
 	void isBanOfRoom(int64_t roomId, int64_t userId, std::function<void (bool isBan, int32_t errorCode)> callback, int32_t timeout = 0);
 
-判断是否房间封禁
+Is Member Baned In The Room
 
-参数:
+Parameters:
 
 + `roomId` 
 
-  房间id
+  room id
 
 + `userId` 
 
-  用户id
+  user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数isBan，是否封禁
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数isBan，是否封禁
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter isBan，is banned
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter isBan，is banned
 
 
 
@@ -119,32 +119,32 @@
 	//-- Async Method
 	void setRoomInfo(int64_t roomId, string* oinfo, string* pinfo, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-设置房间信息
+Set Room Information
 
-参数:
+Parameters:
 
 + `roomId` 
 
-  房间id
+  room id
 
 + `oinfo` 
 
-  共有信息
+  open infomation
 
 + `pinfo` 
 
-  私有信息
+  private infomation
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
 
 
 
@@ -156,25 +156,83 @@
 	//-- Async Method
 	void getRoomInfo(int64_t roomId, std::function<void (string oinfo, string pinfo, int32_t errorCode)> callback, int32_t timeout = 0);
 
-获取房间信息
+Get Room Information
 
-参数:
+Parameters:
 
 + `roomId` 
 
-  群组id
+  room id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数oinfo,  公有信息
-  * 输出参数pinfo,  私有信息
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数oinfo,  公有信息
-  * 参数pinfo,  私有信息
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter oinfo,  open infomation
+  * private parameter pinfo, private information 
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter oinfo,  open infomation
+  * private parameter pinfo, private information 
+
+#### GetRoomMembers
+
+	//-- Sync Method
+  int32_t getRoomMembers(set<int64_t>& uids, int64_t roomid, int32_t timeout = 0);
+	
+	//-- Async Method
+  void getRoomMembers(int64_t roomId, std::function<void (set<int64_t> uids, int32_t errorCode)> callback, int32_t timeout = 0);
+
+Get Members of the Room 
+
+Parameters:
+
++ `roomId` 
+
+  room id
+
++ `int timeout`
+
+  timeout in second，default 0(global configuration)
+
+
+Return Value & Output Parameters
+
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * uids uids of the room members
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * uids uids of the room members
+
+#### GetRoomMember
+
+	//-- Sync Method
+  int32_t getRoomCount(map<string ,int32_t>& count, int64_t roomid, int32_t timeout = 0);
+	
+	//-- Async Method
+  void getRoomCount(int64_t roomId, std::function<void (map<string, int32_t> count, int32_t errorCode)> callback, int32_t timeout = 0);
+
+Get Member Count of the Room 
+
+Parameters:
+
++ `roomId` 
+
+  room id
+
++ `int timeout`
+
+  timeout in second，default 0(global configuration)
+
+
+Return Value & Output Parameters
+
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter count, key for room id, value for count of the room members
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter count, key for room id, value for count of the room members

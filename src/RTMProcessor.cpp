@@ -1,4 +1,5 @@
 #include "RTMProcessor.h"
+#include "RTMServerClient.h"
 
 using namespace rtm;
 
@@ -44,16 +45,60 @@ RTMMessage RTMProcessor::_buildRTMMessage(const FPReaderPtr args)
     rtmMessage.messageType = args->wantInt("mtype");
     rtmMessage.attrs = args->wantString("attrs");
     rtmMessage.modifiedTime = args->wantInt("mtime");
-    rtmMessage.message = args->wantInt("msg");
 
-    if (rtmMessage.messageType == (int8_t)AudioChatMType)
+    if (rtmMessage.messageType == (int8_t)TextChatMType)
     {
-        rtmMessage.audioInfo = buildAudioInfo(rtmMessage.message);
-
-        if (rtmMessage.audioInfo != nullptr)
-            rtmMessage.message = rtmMessage.audioInfo->recognizedText;
+        rtmMessage.translatedInfo = ProcessChatMessage(args);
+        if (rtmMessage.translatedInfo != nullptr)
+        {
+            if (!rtmMessage.translatedInfo->targetText.empty())
+                rtmMessage.message = rtmMessage.translatedInfo->targetText;
+            else
+                rtmMessage.message = rtmMessage.translatedInfo->sourceText;
+        }
+    }
+    else if (rtmMessage.messageType == (int8_t)CmdChatMType)
+    {
+        rtmMessage.message = args->wantString("msg");
+    }
+    else if (RTMServerClient::checkFileMessageType(rtmMessage.messageType))
+    {
+        rtmMessage.message = args->wantString("msg");
+        RTMServerClient::buildFileInfo(rtmMessage);
+    }
+    else
+    {
+        rtmMessage.message = args->wantString("msg");
     }
     return rtmMessage;
+}
+
+shared_ptr<TranslatedInfo> RTMProcessor::ProcessChatMessage(const FPReaderPtr args)
+{
+    string msg = args->wantString("msg");
+    rapidjson::Document document;
+    if (document.Parse(msg.c_str()).HasParseError())
+        return nullptr;
+    if (document.IsObject() == false)
+        return nullptr;
+    shared_ptr<TranslatedInfo> info;
+    if (document.HasMember("source") && document["source"].IsString())
+        info->sourceLanguage = document["source"].GetString();
+    else
+        info->sourceLanguage = "";
+    if (document.HasMember("target") && document["target"].IsString())
+        info->targetLanguage = document["target"].GetString();
+    else
+        info->targetLanguage = "";
+    if (document.HasMember("sourceText") && document["sourceText"].IsString())
+        info->sourceText = document["sourceText"].GetString();
+    else
+        info->sourceText = "";
+    if (document.HasMember("targetText") && document["targetText"].IsString())
+        info->targetText = document["targetText"].GetString();
+    else
+        info->targetText = "";
+    return info;
 }
 
 FPAnswerPtr RTMProcessor::pushP2PMessageAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci)
@@ -71,11 +116,9 @@ FPAnswerPtr RTMProcessor::pushP2PMessageAction(const FPReaderPtr args, const FPQ
 
     if (rtmMessage.messageType == (int8_t)TextChatMType)
         _serverMonitor->pushP2PChat(rtmMessage);
-    else if (rtmMessage.messageType == (int8_t)AudioChatMType && rtmMessage.audioInfo != nullptr)
-        _serverMonitor->pushP2PAudio(rtmMessage);
     else if (rtmMessage.messageType == (int8_t)CmdChatMType)
         _serverMonitor->pushP2PCmd(rtmMessage);
-    else if (rtmMessage.messageType >= 40 && rtmMessage.messageType <= 50)
+    else if (RTMServerClient::checkFileMessageType(rtmMessage.messageType))
         _serverMonitor->pushP2PFile(rtmMessage);
     else
         _serverMonitor->pushP2PMessage(rtmMessage);
@@ -96,13 +139,11 @@ FPAnswerPtr RTMProcessor::pushGroupMessageAction(const FPReaderPtr args, const F
 
     RTMMessage rtmMessage = _buildRTMMessage(args);
 
-    if (rtmMessage.messageType == (int8_t)TextChatMType)
+    if (rtmMessage.messageType == (int8_t)TextChatMType && rtmMessage.translatedInfo != nullptr)
         _serverMonitor->pushGroupChat(rtmMessage);
-    else if (rtmMessage.messageType == (int8_t)AudioChatMType && rtmMessage.audioInfo != nullptr)
-        _serverMonitor->pushGroupAudio(rtmMessage);
     else if (rtmMessage.messageType == (int8_t)CmdChatMType)
         _serverMonitor->pushGroupCmd(rtmMessage);
-    else if (rtmMessage.messageType >= 40 && rtmMessage.messageType <= 50)
+    else if (RTMServerClient::checkFileMessageType(rtmMessage.messageType))
         _serverMonitor->pushGroupFile(rtmMessage);
     else
         _serverMonitor->pushGroupMessage(rtmMessage);
@@ -123,13 +164,11 @@ FPAnswerPtr RTMProcessor::pushRoommMessageAction(const FPReaderPtr args, const F
 
     RTMMessage rtmMessage = _buildRTMMessage(args);
 
-    if (rtmMessage.messageType == (int8_t)TextChatMType)
+    if (rtmMessage.messageType == (int8_t)TextChatMType && rtmMessage.translatedInfo != nullptr)
         _serverMonitor->pushRoomChat(rtmMessage);
-    else if (rtmMessage.messageType == (int8_t)AudioChatMType && rtmMessage.audioInfo != nullptr)
-        _serverMonitor->pushRoomAudio(rtmMessage);
     else if (rtmMessage.messageType == (int8_t)CmdChatMType)
         _serverMonitor->pushRoomCmd(rtmMessage);
-    else if (rtmMessage.messageType >= 40 && rtmMessage.messageType <= 50)
+    else if (RTMServerClient::checkFileMessageType(rtmMessage.messageType))
         _serverMonitor->pushRoomFile(rtmMessage);
     else
         _serverMonitor->pushRoomMessage(rtmMessage);

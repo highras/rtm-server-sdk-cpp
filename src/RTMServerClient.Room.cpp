@@ -9,12 +9,15 @@ FPQuestPtr RTMServerClient::_getAddRoomBanQuest(int64_t rid, int64_t uid, int32_
     int64_t salt;
     _makeSignAndSalt(ts, "addroomban", sign, salt);
 
-    FPQWriter qw(7, "addroomban");
+    int32_t paramSize = rid == 0 ? 6: 7;
+
+    FPQWriter qw(paramSize, "addroomban");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
     qw.param("ts", ts);
-    qw.param("rid", rid);
+    if (rid != 0)
+        qw.param("rid", rid);
     qw.param("uid", uid);
     qw.param("btime", btime);
     return qw.take();
@@ -50,12 +53,14 @@ FPQuestPtr RTMServerClient::_getRemoveRoomBanQuest(int64_t rid, int64_t uid)
     int64_t salt;
     _makeSignAndSalt(ts, "removeroomban", sign, salt);
 
-    FPQWriter qw(6, "removeroomban");
+    int32_t paramSize = rid == 0 ? 5 : 6;
+    FPQWriter qw(paramSize, "removeroomban");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
     qw.param("ts", ts);
-    qw.param("rid", rid);
+    if (rid != 0)
+        qw.param("rid", rid);
     qw.param("uid", uid);
     return qw.take();
 }
@@ -277,6 +282,38 @@ FPQuestPtr RTMServerClient::_getGetRoomInfoQuest(int64_t rid)
     return qw.take();
 }
 
+FPQuestPtr RTMServerClient::_getGetRoomMembersQuest(int64_t rid)
+{
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "getroommembers", sign, salt);
+
+    FPQWriter qw(5, "getroommembers");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("rid", rid);
+    return qw.take();
+}
+
+FPQuestPtr RTMServerClient::_getGetRoomCountQuest(int64_t rid)
+{
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "getroomcount", sign, salt);
+
+    FPQWriter qw(5, "getroomcount");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("rid", rid);
+    return qw.take();
+}
+
 int32_t RTMServerClient::getRoomInfo(string& oinfo, string& pinfo, int64_t roomId, int32_t timeout)
 {
     FPQuestPtr quest = _getGetRoomInfoQuest(roomId);
@@ -308,4 +345,66 @@ void RTMServerClient::getRoomInfo(int64_t roomId, std::function<void (string oin
 
     if (!status)
         callback("", "", FPNN_EC_CORE_INVALID_CONNECTION);
+}
+
+int32_t RTMServerClient::getRoomMembers(set<int64_t>& uids, int64_t roomId, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetRoomMembersQuest(roomId);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    QuestResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        uids = ar.get("uids", uids);
+    }
+    return result.errorCode;
+}
+
+void RTMServerClient::getRoomMembers(int64_t roomId, std::function<void (set<int64_t> uids, int32_t errorCode)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetRoomMembersQuest(roomId);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        QuestResult result;
+        set<int64_t> uids;
+        if (!_checkAnswerError(answer, result, errorCode)) {
+            FPAReader ar(answer);
+            uids = ar.get("uids", uids);
+        }
+        callback(uids, result.errorCode);
+    }, timeout);
+
+    if (!status)
+        callback(set<int64_t>(), FPNN_EC_CORE_INVALID_CONNECTION);
+}
+
+int32_t RTMServerClient::getRoomCount(map<string, int32_t>& count, int64_t roomId, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetRoomCountQuest(roomId);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    QuestResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        count = ar.get("cn", count);
+    }
+    return result.errorCode;
+}
+
+void RTMServerClient::getRoomCount(int64_t roomId, std::function<void (map<string, int32_t> count, int32_t errorCode)> callback, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetRoomCountQuest(roomId);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        QuestResult result;
+        map<string, int32_t> count;
+        if (!_checkAnswerError(answer, result, errorCode)) {
+            FPAReader ar(answer);
+            count = ar.get("cn" ,count);
+        }
+        callback(count, result.errorCode);
+    }, timeout);
+
+    if (!status)
+        callback(map<string, int32_t>(), FPNN_EC_CORE_INVALID_CONNECTION);
 }

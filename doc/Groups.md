@@ -14,28 +14,28 @@
 	//-- Sync Method
 	void addGroupMembers(int64_t groupId, const set<int64_t>& userIds, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-添加群组成员
+Add Members Into the Group
 
-参数:
+Parameters:
 
 + `groupId` 
 
-  群组id
+  group id
 
 + `userIds` 
 
-  成员用户id集合
+  member user id set
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
 
 
 
@@ -47,28 +47,28 @@
 	//-- Async Method
 	void deleteGroupMembers(int64_t groupId, const set<int64_t>& userIds, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-删除好友
+Delete Friends
 
-参数:
+Parameters:
 
 + `groupId` 
 
-  群组id
+  group id
 
 + `userIds` 
 
-  成员用户id集合
+  member user id set 
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
 
 
 
@@ -80,24 +80,24 @@
 	//-- Async Method
 	void deleteGroup(int64_t groupId, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-删除群组
+Delete Group
 
-参数:
+Parameters:
 
 + `groupId` 
 
-  群组id
+  group id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
 
 
 
@@ -109,26 +109,26 @@
 	//-- Async Method
 	void getGroupMembers(int64_t groupId, std::function<void (set<int64_t> members, int32_t errorCode)> callback, int32_t timeout = 0);
 
-获取群组成员
+Get Group Members
 
-参数:
+Parameters:
 
 + `groupId` 
 
-  群组id
+  group id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数members,  成员用户id集合
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数members,  成员用户id集合
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter members,  member user id set
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter members,  member user id set
 
 
 
@@ -140,30 +140,30 @@
 	//-- Async Method
 	void isGroupMember(int64_t groupId, int64_t userId, std::function<void (bool isMember, int32_t errorCode)> callback, int32_t timeout = 0);
 
-判断是否为群组成员
+Is Groupt Member
 
-参数:
+Parameters:
 
 + `groupId` 
 
-  群组id
+  group id
 
 + `userId` 
 
-  用户id
+  user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数isMember,  是否群组成员
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数isMember,  是否群组成员
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter isMember, is group member
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter isMember, is group member
 
 
 
@@ -175,26 +175,26 @@
 	//-- Async Method
 	void getUserGroups(int64_t userId, std::function<void (set<int64_t> groupIds, int32_t errorCode)> callback, int32_t timeout = 0);
 
-获取用户加入了哪些群组
+Get Groups The User In
 
-参数:
+Parameters:
 
 + `userId` 
 
-  用户id
+  user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数groupIds,  加入的群组id集合
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数groupIds,  加入的群组id集合
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter groupIds,  joined group id set
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter groupIds,  joined group id set
 
 
 
@@ -206,32 +206,32 @@
 	//-- Async Method
 	void addGroupBan(int64_t groupId, int64_t userId, int32_t banTime, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-添加群组封禁
+Ban The Group Member 
 
-参数:
+Parameters:
 
 + `groupId` 
 
-  群组id
+  group id, if 0 is setted, all the groups will be banned for this user
 
 + `userId` 
 
-  用户id
+  user id
 
 + `banTime` 
 
-  封禁时间
+  ban time
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
 
 
 
@@ -243,28 +243,28 @@
 	//-- Async Method
 	void removeGroupBan(int64_t groupId, int64_t userId, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-解除群组封禁
+Unban The Group Member
 
-参数:
+Parameters:
 
 + `groupId` 
 
-  群组id
+  group id, if 0 is setted, all the groups will remove ban for this user
 
 + `userId` 
 
-  用户id
+  user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
   
     
 
@@ -278,30 +278,30 @@
 	//-- Async Method
 	void isBanOfGroup(int64_t groupId, int64_t userId, std::function<void (bool isBan, int32_t errorCode)> callback, int32_t timeout = 0);
 
-判断是否为群组封禁
+Is The Member Banned In The Group
 
-参数:
+Parameters:
 
 + `groupId` 
 
-  群组id
+  group id
 
 + `userId` 
 
-  用户id
+  user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数isBan,  是否封禁
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数isBan,  是否封禁
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter isBan,  is banned
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter isBan,  is banned
 
 
 
@@ -313,32 +313,32 @@
 	//-- Async Method
 	void setGroupInfo(int64_t groupId, string* oinfo, string* pinfo, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-设置群组信息 
+Set Group Info
 
-参数:
+Parameters:
 
 + `groupId` 
 
-  群组id
+  group id
 
 + `oinfo` 
 
-  群组公开信息
+  group open information
 
 + `pinfo` 
 
-  群组私有信息
+  group private information
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
 
 
 
@@ -350,32 +350,33 @@
 	//-- Async Method
 	void getGroupInfo(int64_t groupId, std::function<void (string oinfo, string pinfo, int32_t errorCode)> callback, int32_t timeout = 0);
 
-获取群组信息 
+ Get Group Information
 
-参数:
+Parameters:
 
 + `groupId` 
 
-  群组id
+  group id
 
 + `oinfo` 
 
-  群组公开信息
+  group open information
 
 + `pinfo` 
 
-  群组私有信息
+  group private information
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数oinfo,  公有信息
-  * 参数pinfo,  私有信息
-
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter oinfo,  open information
+  * output parameter pinfo,  private information
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter oinfo,  open information
+  * output parameter pinfo,  private information

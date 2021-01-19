@@ -81,59 +81,46 @@ namespace rtm
         bool enableEncryptorByPemFile(const char *pemFilePath, bool packageMode = true, bool reinforce = false);
         void enableEncryptor(const string& curve, const string& peerPublicKey, bool packageMode = true, bool reinforce = false);
 
-        int32_t sendChat(int32_t& modifyTime, int64_t fromUid, int64_t toUid, const string& message, const string& attrs, int32_t timeout = 0);
-        void sendChat(int64_t fromUid, int64_t toUid, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendAudio(int32_t& modifyTime, int64_t fromUid, int64_t toUid, const string& message, const string& attrs, int32_t timeout = 0);
-        void sendAudio(int64_t fromUid, int64_t toUid, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendCmd(int32_t& modifyTime, int64_t fromUid, int64_t toUid, const string& message, const string& attrs, int32_t timeout = 0);
-        void sendCmd(int64_t fromUid, int64_t toUid, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendMessage(int32_t& modifyTime, int64_t fromUid, int64_t toUid, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
+        int32_t sendChat(int64_t& mid, int64_t fromUid, int64_t toUid, const string& message, const string& attrs, int32_t timeout = 0);
+        void sendChat(int64_t fromUid, int64_t toUid, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t sendCmd(int64_t& mid, int64_t fromUid, int64_t toUid, const string& message, const string& attrs, int32_t timeout = 0);
+        void sendCmd(int64_t fromUid, int64_t toUid, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t sendMessage(int64_t& mid, int64_t fromUid, int64_t toUid, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
         void sendMessage(int64_t fromUid, int64_t toUid, int8_t mtype, const string& message, const string& attrs, 
-                std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendMessages(int32_t& modifyTime, int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
-        void sendMessages(int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendChats(int32_t& modifyTime, int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, int32_t timeout = 0);
-        void sendChats(int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendAudios(int32_t& modifyTime, int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, int32_t timeout = 0);
-        void sendAudios(int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendCmds(int32_t& modifyTime, int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, int32_t timeout = 0);
-        void sendCmds(int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendGroupMessage(int32_t& modifyTime, int64_t fromUid, int64_t groupId, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
+                std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t sendMessages(int64_t& mid, int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
+        void sendMessages(int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t sendChats(int64_t& mid, int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, int32_t timeout = 0);
+        void sendChats(int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t sendCmds(int64_t& mid, int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, int32_t timeout = 0);
+        void sendCmds(int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t sendGroupMessage(int64_t& mid, int64_t fromUid, int64_t groupId, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
         void sendGroupMessage(int64_t fromUid, int64_t groupId, int8_t mtype, const string& message, const string& attrs,
-                std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendGroupChat(int32_t& modifyTime, int64_t fromUid, int64_t groupId, const string& message, const string& attrs, int32_t timeout = 0);
+                std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t sendGroupChat(int64_t& mid, int64_t fromUid, int64_t groupId, const string& message, const string& attrs, int32_t timeout = 0);
         void sendGroupChat(int64_t fromUid, int64_t groupId, const string& message, const string& attrs,
-                std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendGroupAudio(int32_t& modifyTime, int64_t fromUid, int64_t groupId, const string& message, const string& attrs, int32_t timeout = 0);
-        void sendGroupAudio(int64_t fromUid, int64_t groupId, const string& message, const string& attrs,
-                std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendGroupCmd(int32_t& modifyTime, int64_t fromUid, int64_t groupId, const string& message, const string& attrs, int32_t timeout = 0);
+                std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t sendGroupCmd(int64_t& mid, int64_t fromUid, int64_t groupId, const string& message, const string& attrs, int32_t timeout = 0);
         void sendGroupCmd(int64_t fromUid, int64_t groupId, const string& message, const string& attrs,
-                std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendRoomMessage(int32_t& modifyTime, int64_t fromUid, int64_t roomId, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
+                std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t sendRoomMessage(int64_t& mid, int64_t fromUid, int64_t roomId, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
         void sendRoomMessage(int64_t fromUid, int64_t roomId, int8_t mtype, const string& message, const string& attrs,
-                std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendRoomChat(int32_t& modifyTime, int64_t fromUid, int64_t roomId, const string& message, const string& attrs, int32_t timeout = 0);
+                std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t sendRoomChat(int64_t& mid, int64_t fromUid, int64_t roomId, const string& message, const string& attrs, int32_t timeout = 0);
         void sendRoomChat(int64_t fromUid, int64_t roomId, const string& message, const string& attrs,
-                std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendRoomAudio(int32_t& modifyTime, int64_t fromUid, int64_t roomId, const string& message, const string& attrs, int32_t timeout = 0);
-        void sendRoomAudio(int64_t fromUid, int64_t roomId, const string& message, const string& attrs,
-                std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendRoomCmd(int32_t& modifyTime, int64_t fromUid, int64_t roomId, const string& message, const string& attrs, int32_t timeout = 0);
+                std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t sendRoomCmd(int64_t& mid, int64_t fromUid, int64_t roomId, const string& message, const string& attrs, int32_t timeout = 0);
         void sendRoomCmd(int64_t fromUid, int64_t roomId, const string& message, const string& attrs,
-                std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t broadcastMessage(int32_t& modifyTime, int64_t fromUid, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
+                std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t broadcastMessage(int64_t& mid, int64_t fromUid, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
         void broadcastMessage(int64_t fromUid, int8_t mtype, const string& message, const string& attrs,
-                std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t broadcastChat(int32_t& modifyTime, int64_t fromUid, const string& message, const string& attrs, int32_t timeout = 0);
+                std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t broadcastChat(int64_t& mid, int64_t fromUid, const string& message, const string& attrs, int32_t timeout = 0);
         void broadcastChat(int64_t fromUid, const string& message, const string& attrs,
-                std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t broadcastAudio(int32_t& modifyTime, int64_t fromUid, const string& message, const string& attrs, int32_t timeout = 0);
-        void broadcastAudio(int64_t fromUid, const string& message, const string& attrs,
-                std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t broadcastCmd(int32_t& modifyTime, int64_t fromUid, const string& message, const string& attrs, int32_t timeout = 0);
+                std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t broadcastCmd(int64_t& mid, int64_t fromUid, const string& message, const string& attrs, int32_t timeout = 0);
         void broadcastCmd(int64_t fromUid, const string& message, const string& attrs,
-                std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
+                std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
         int32_t addFriends(int64_t userId, const set<int64_t>& friends, int32_t timeout = 0);
         void addFriends(int64_t userId, const set<int64_t>& friends, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
         int32_t deleteFriends(int64_t userId, const set<int64_t>& friends, int32_t timeout = 0);
@@ -224,6 +211,12 @@ namespace rtm
         void addDevice(int64_t userId, const string& appType, const string& deviceToken, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
         int32_t removeDevice(int64_t userId, const string& deviceToken, int32_t timeout = 0);
         void removeDevice(int64_t userId, const string& deviceToken, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t addDevicePushOption(int64_t userId, int8_t type, int64_t xid, const set<int8_t>& mtype, int32_t timeout = 0);
+        void addDevicePushOption(int64_t userId, int8_t type, int64_t xid, const set<int8_t>& mtype, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t removeDevicePushOption(int64_t userId, int8_t type, int64_t xid, const set<int8_t>& mtype, int32_t timeout = 0);
+        void removeDevicePushOption(int64_t userId, int8_t type, int64_t xid, const set<int8_t>& mtype, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t getDevicePushOption(map<string, set<int8_t>>& p2p, map<string, set<int8_t>>& group, int64_t userId, int32_t timeout = 0);
+        void getDevicePushOption(int64_t userId, std::function<void (map<string, set<int8_t>> p2p, map<string, set<int8_t>> group, int32_t errorCode)> callback, int32_t timeout = 0);
         int32_t removeToken(int64_t userId, int32_t timeout = 0);
         void removeToken(int64_t userId, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
         int32_t deleteMessage(int64_t mid, int64_t fromUid, int64_t toId, MessageCategory messageCategory, int32_t timeout = 0);
@@ -233,24 +226,20 @@ namespace rtm
         int32_t kickout(int64_t userId, const string& ce, int32_t timeout = 0);
         void kickout(int64_t userId, const string& ce, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
         bool loadFile(const string& filePath, string& fileData);
-        int32_t sendFile(int32_t& modifyTime, int64_t fromUid, int64_t toUid, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout = 0);
-        void sendFile(int64_t fromUid, int64_t toUid, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendFiles(int32_t& modifyTime, int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout = 0);
-        void sendFiles(int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendGroupFile(int32_t& modifyTime, int64_t fromUid, int64_t groupId, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout = 0);
-        void sendGroupFile(int64_t fromUid, int64_t groupId, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t sendRoomFile(int32_t& modifyTime, int64_t fromUid, int64_t roomId, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout = 0);
-        void sendRoomFile(int64_t fromUid, int64_t roomId, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t broadcastFile(int32_t& modifyTime, int64_t fromUid, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout = 0);
-        void broadcastFile(int64_t fromUid, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t sendFile(int64_t& mid, int64_t fromUid, int64_t toUid, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension = "", const map<string, string>& attrs = map<string, string>(), int32_t timeout = 0);
+        void sendFile(int64_t fromUid, int64_t toUid, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int64_t mid, int32_t errorCode)> callback, const string& fileExtension = "", const map<string, string>& attrs = map<string, string>(), int32_t timeout = 0);
+        int32_t sendFiles(int64_t& mid, int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension = "", const map<string, string>& attrs = map<string, string>(), int32_t timeout = 0);
+        void sendFiles(int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int64_t mid, int32_t errorCode)> callback, const string& fileExtension = "", const map<string, string>& attrs = map<string, string>(), int32_t timeout = 0);
+        int32_t sendGroupFile(int64_t& mid, int64_t fromUid, int64_t groupId, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension = "", const map<string, string>& attrs = map<string, string>(), int32_t timeout = 0);
+        void sendGroupFile(int64_t fromUid, int64_t groupId, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int64_t mid, int32_t errorCode)> callback, const string& fileExtension = "", const map<string, string>& attrs = map<string, string>(), int32_t timeout = 0);
+        int32_t sendRoomFile(int64_t& mid, int64_t fromUid, int64_t roomId, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension = "", const map<string, string>& attrs = map<string, string>(), int32_t timeout = 0);
+        void sendRoomFile(int64_t fromUid, int64_t roomId, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int64_t mid, int32_t errorCode)> callback, const string& fileExtension = "", const map<string, string>& attrs = map<string, string>(), int32_t timeout = 0);
+        int32_t broadcastFile(int64_t& mid, int64_t fromUid, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension = "", const map<string, string>& attrs = map<string, string>(), int32_t timeout = 0);
+        void broadcastFile(int64_t fromUid, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int64_t mid, int32_t errorCode)> callback, const string& fileExtension = "", const map<string, string>& attrs = map<string, string>(), int32_t timeout = 0);
         int32_t translate(TranslatedInfo& translatedInfo, const string& text, TranslateLanguage destinationLanguage, TranslateLanguage sourceLanguage = None, TranslateType type = Chat, ProfanityType profanity = Off, int64_t userId = 0, int32_t timeout = 0);
         void translate(const string& text, TranslateLanguage destinationLanguage, std::function<void (TranslatedInfo translatedInfo, int32_t errorCode)> callback, TranslateLanguage sourceLanguage = None, TranslateType type = Chat, ProfanityType profanity = Off, int64_t userId = 0, int32_t timeout = 0);
         int32_t profanity(string& resultText, vector<string>& classification, const string& text, bool classify = false, int64_t userId = 0, int32_t timeout = 0);
         void profanity(const string& text, std::function<void (string resultText, vector<string> classification, int32_t errorCode)> callback, bool classify = false, int64_t userId = 0, int32_t timeout = 0);
-        int32_t transcribe(string& resultText, string& resultLanguage, const string& audio, int64_t userId = 0, bool profanityFilter = false, int32_t timeout = 0);
-        void transcribe(const string& audio, std::function<void (string resultText, string resultLanguage, int32_t errorCode)> callback, int64_t userId = 0, bool profanityFilter = false, int32_t timeout = 0);
-        int32_t transcribeMessage(string& resultText, string& resultLanguage, int64_t fromUid, int64_t mid, int64_t toId, MessageCategory messageCategory, bool profanityFilter = false, int32_t timeout = 0);
-        void transcribeMessage(int64_t fromUid, int64_t mid, int64_t toId, MessageCategory messageCategory, std::function<void (string resultText, string resultLanguage, int32_t errorCode)> callback, bool profanityFilter = false, int32_t timeout = 0);
         int32_t setUserInfo(int64_t userId, string* oinfo, string* pinfo, int32_t timeout = 0);
         void setUserInfo(int64_t userId, string* oinfo, string* pinfo, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
         int32_t getUserInfo(string& oinfo, string& pinfo, int64_t userId, int32_t timeout = 0);
@@ -265,8 +254,14 @@ namespace rtm
         void setRoomInfo(int64_t roomId, string* oinfo, string* pinfo, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
         int32_t getRoomInfo(string& oinfo, string& pinfo, int64_t roomId, int32_t timeout = 0);
         void getRoomInfo(int64_t roomId, std::function<void (string oinfo, string pinfo, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t getRoomMembers(set<int64_t>& uids, int64_t roomid, int32_t timeout = 0);
+        void getRoomMembers(int64_t roomId, std::function<void (set<int64_t> uids, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t getRoomCount(map<string, int32_t>& count, int64_t roomid, int32_t timeout = 0);
+        void getRoomCount(int64_t roomId, std::function<void (map<string, int32_t> count, int32_t errorCode)> callback, int32_t timeout = 0);
         int32_t getMessage(RetrievedMessage& retrievedMessage, int64_t mid, int64_t fromUid, int64_t toId, MessageCategory messageCategory, int32_t timeout = 0);
         void getMessage(int64_t mid, int64_t fromUid, int64_t toId, MessageCategory messageCategory, std::function<void (RetrievedMessage retrievedMessage, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t getMessageNum(int32_t& senderId, int32_t& messageNum, MessageCategory messageCategory, int64_t userId, set<int8_t> messageTypes = set<int8_t>(), int64_t begin = 0, int64_t end = 0, int32_t timeout = 0);
+        void getMessageNum(MessageCategory messageCategory, int64_t userId, std::function<void (int32_t senderId, int32_t messageNum, int32_t errorCode)> callback, set<int8_t> messageTypes = set<int8_t>(), int64_t begin = 0, int64_t end = 0, int32_t timeout = 0);
         int32_t getChat(RetrievedMessage& retrievedMessage, int64_t mid, int64_t fromUid, int64_t toId, MessageCategory messageCategory, int32_t timeout = 0);
         void getChat(int64_t mid, int64_t fromUid, int64_t toId, MessageCategory messageCategory, std::function<void (RetrievedMessage retrievedMessage, int32_t errorCode)> callback, int32_t timeout = 0);
         int32_t dataSet(int64_t userId, const string& key, const string& value, int32_t timeout = 0);
@@ -275,18 +270,32 @@ namespace rtm
         void dataDelete(int64_t userId, const string& key, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
         int32_t dataGet(string& value, int64_t userId, const string& key, int32_t timeout = 0);
         void dataGet(int64_t userId, const string& key, std::function<void (string value, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t speechToText(string& resultText, string& resultLanguage, const string& audio, int32_t autoType, const string& language, const string codec = "", int32_t sampleRate = 0, int64_t userId = 0, int32_t timeout = 120);
+        void speechToText(const string& audio, int32_t audioType, const string& language, std::function<void (string resultText, string resultLanguage, int32_t errorCode)> callback, const string codec = "", int32_t sampleRate = 0, int64_t userId = 0, int32_t timeout = 120);
+        int32_t textCheck(TextCheckResult& result, const string& text, int64_t userId = 0, int32_t timeout = 120);
+        void textCheck(const string& text, std::function<void (TextCheckResult result, int32_t errorCode)> callback, int64_t userId = 0, int32_t timeout = 120);
+        int32_t imageCheck(CheckResult& result, const string& image, int32_t imageType, int64_t userId = 0, int32_t timeout = 120);
+        void imageCheck(const string& image, int32_t imageType, std::function<void (CheckResult result, int32_t errorCode)> callback, int64_t userId = 0, int32_t timeout = 120);
+        int32_t audioCheck(CheckResult& result, const string& audio, int32_t audioType, const string& language, const string codec = "", int32_t sampleRate = 0, int64_t userId = 0, int32_t timeout = 120);
+        void audioCheck(const string& audio, int32_t audioType, const string& language, std::function<void (CheckResult result, int32_t errorCode)> callback, const string codec = "", int32_t sampleRate = 0, int64_t userId = 0, int32_t timeout = 120);
+        int32_t videoCheck(CheckResult& result, const string& video, int32_t videoType, const string& videoName, int64_t userId = 0, int32_t timeout = 120);
+        void videoCheck(const string& video, int32_t videoType, const string& videoName, std::function<void (CheckResult result, int32_t errorCode)> callback, int64_t userId = 0, int32_t timeout = 120);
 
+        static void buildFileInfo(RTMMessage& message);
+        static void parseFileMessage(RTMMessage& message);
+        static void parseFileAttrs(RTMMessage& message);
+        static bool checkFileMessageType(int8_t messageType);
     private:
         void _connectedCallback(const ConnectionInfo& connInfo);
         void _closedCallback(const ConnectionInfo& connInfo, bool closeByError);
         string _calcMD5(const string& content);
         bool _checkAnswerError(FPAnswerPtr answer, QuestResult& result, int32_t errorCode = -1);
         void _makeSignAndSalt(int32_t ts, const string& cmd, string& sign, int64_t& salt);
-        FPQuestPtr _getSendMessageQuest(int64_t from, int64_t to, int8_t mtype, const string& message, const string& attrs);
-        FPQuestPtr _getSendMessagesQuest(int64_t from, const set<int64_t>& tos, int8_t mtype, const string& message, const string& attrs);
-        FPQuestPtr _getSendGroupMessageQuest(int64_t from, int64_t gid, int8_t mtype, const string& message, const string& attrs);
-        FPQuestPtr _getSendRoomMessageQuest(int64_t from, int64_t rid, int8_t mtype, const string& message, const string& attrs);
-        FPQuestPtr _getBroadcastMessageQuest(int64_t from, int8_t mtype, const string& message, const string& attrs);
+        FPQuestPtr _getSendMessageQuest(int64_t from, int64_t to, int8_t mtype, const string& message, const string& attrs, int64_t& mid);
+        FPQuestPtr _getSendMessagesQuest(int64_t from, const set<int64_t>& tos, int8_t mtype, const string& message, const string& attrs, int64_t& mid);
+        FPQuestPtr _getSendGroupMessageQuest(int64_t from, int64_t gid, int8_t mtype, const string& message, const string& attrs, int64_t& mid);
+        FPQuestPtr _getSendRoomMessageQuest(int64_t from, int64_t rid, int8_t mtype, const string& message, const string& attrs, int64_t& mid);
+        FPQuestPtr _getBroadcastMessageQuest(int64_t from, int8_t mtype, const string& message, const string& attrs, int64_t& mid);
         FPQuestPtr _getAddFriendsQuest(int64_t uid, const set<int64_t>& friends);
         FPQuestPtr _getDeleteFriendsQuest(int64_t uid, const set<int64_t>& friends);
         FPQuestPtr _getGetFriendsQuest(int64_t uid);
@@ -327,16 +336,18 @@ namespace rtm
         FPQuestPtr _getSetListenQuest(bool allGroup, bool allRoom, bool allP2P, bool allEvent);
         FPQuestPtr _getAddDeviceQuest(int64_t uid, const string& appType, const string& deviceToken);
         FPQuestPtr _getRemoveDeviceQuest(int64_t uid, const string& deviceToken);
+        FPQuestPtr _getAddOptionQuest(int64_t uid, int8_t type, int64_t xid, const set<int8_t>& mtype);
+        FPQuestPtr _getRemoveOptionQuest(int64_t uid, int8_t type, int64_t xid, const set<int8_t>& mtype);
+        FPQuestPtr _getGetOptionQuest(int64_t uid);
         FPQuestPtr _getRemoveTokenQuest(int64_t uid);
         FPQuestPtr _getDeleteMessageQuest(int64_t mid, int64_t from, int64_t xid, int8_t type);
         FPQuestPtr _getKickoutQuest(int64_t uid, const string& ce);
-        FPQuestPtr _getSendFileQuest(const string& token, int64_t from, SendFileInfo info, int64_t to, const set<int64_t>& tos, int64_t gid, int64_t rid, int8_t mtype, const string& fileData, const string& fileName);
-        int32_t _sendFileProcess(int32_t& modifyTime, FileTokenType tokenType, int64_t from, int64_t to, const set<int64_t>& tos, int64_t gid, int64_t rid, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout);
+        FPQuestPtr _getSendFileQuest(const string& token, int64_t from, SendFileInfo info, int64_t to, const set<int64_t>& tos, int64_t gid, int64_t rid, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension, const map<string, string>& attrs, int64_t& mid);
+        int32_t _sendFileProcess(int64_t& mid, FileTokenType tokenType, int64_t from, int64_t to, const set<int64_t>& tos, int64_t gid, int64_t rid, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension, const map<string, string>& attrs = map<string, string>(), int32_t timeout = 120);
         void _sendFileProcess(FileTokenType tokenType, int64_t from, int64_t to, const set<int64_t>& tos, int64_t gid, int64_t rid, int8_t mtype, const string& fileData, const string& fileName, 
-        std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout);
+        std::function<void (int64_t mid, int32_t errorCode)> callback, const string& fileExtension = "", const map<string, string>& attrs = map<string, string>(), int32_t timeout = 120);
         FPQuestPtr _getTranslateQuest(const string& text, const string& dst, const string& src, const string& type, const string& profanity, int64_t uid);
         FPQuestPtr _getProfanityQuest(const string& text, bool classify, int64_t uid);
-        FPQuestPtr _getTranscribeQuest(const string& audio, int64_t uid, bool profanityFilter);
         FPQuestPtr _getSetUserInfoQuest(int64_t uid, string* oinfo, string* pinfo);
         FPQuestPtr _getGetUserInfoQuest(int64_t uid);
         FPQuestPtr _getGetUserOpenInfoQuest(const set<int64_t>& uids);
@@ -344,8 +355,16 @@ namespace rtm
         FPQuestPtr _getGetGroupInfoQuest(int64_t gid);
         FPQuestPtr _getSetRoomInfoQuest(int64_t rid, string* oinfo, string* pinfo);
         FPQuestPtr _getGetRoomInfoQuest(int64_t rid);
+        FPQuestPtr _getGetRoomMembersQuest(int64_t rid);
+        FPQuestPtr _getGetRoomCountQuest(int64_t rid);
         FPQuestPtr _getGetMessageQuest(int64_t mid, int64_t from, int64_t xid, int8_t type);
-        bool _getTranscribeCache(const char* buffer, size_t length, string& text, string& lang);
+        FPQuestPtr _getGetMessageNumQuest(int8_t type, int64_t xid, set<int8_t> mtypes, int64_t begin, int64_t end);
+        FPQuestPtr _getSpeechToTextQuest(const string& audio, int32_t audioType, const string& language, const string& codec, int32_t sampleRate, int64_t userId);
+        FPQuestPtr _getTextCheckQuest(const string& text, int64_t userId);
+        FPQuestPtr _getImageCheckQuest(const string& image, int32_t imageType, int64_t userId);
+        FPQuestPtr _getAudioCheckQuest(const string& audio, int32_t audioType, const string& language, const string& codec, int32_t sampleRate, int64_t userId);
+        FPQuestPtr _getVideoCheckQuest(const string& video, int32_t videoType, const string& videoName, int64_t userId);
+        bool _checkCheckType(int32_t type);
         string _getSendFileType(FileTokenType sendType);
         void _checkRoutine();
         void _routine();
@@ -358,8 +377,8 @@ namespace rtm
         HistoryMessageResult _buildHistoryMessageResult(int64_t toId, FPAnswerPtr answer, bool isP2P);
         void _getCommonMessage(vector<struct CommonMessage>& messageList, FPAReader& reader, bool isP2P);
         void _adjustHistoryMessageResultForP2PMessage(HistoryMessageResult& result, int64_t selfUid, int64_t peerUserUid);
+        string _buildFileAttrs(const string& sign, const string& fileName, const string& fileExtension, const map<string, string>& attrs);
         RetrievedMessage _buildRetrievedMessage(FPAnswerPtr answer);
-        FPQuestPtr _getTranscribeMessageQuest(int64_t from, int64_t mid, int64_t toId, int8_t type, bool profanityFilter);
         FPQuestPtr _getDataSetQuest(int64_t uid, const string& key, const string& value);
         FPQuestPtr _getDataDeleteQuest(int64_t uid, const string& key);
         FPQuestPtr _getDataGetQuest(int64_t uid, const string& key);

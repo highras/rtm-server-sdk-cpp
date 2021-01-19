@@ -21,12 +21,13 @@ class MyRTMServerMonitor: public RTMServerPushMonitor
         cout << method << endl;
         cout << "fromUid: " << message.fromUid << " toId: " << message.toId << " messageType: " << message.messageType << " messageId: " << message.messageId << " message: " << message.message << " attrs: " << message.attrs << " modifiedTime: " << message.modifiedTime << endl;
 
-        if (message.audioInfo != nullptr) {
-            cout << "audioInfo->sourceLanguage: " <<  message.audioInfo->sourceLanguage << " audioInfo->recognizedLanguage: " << message.audioInfo->recognizedLanguage << " audioInfo->recognizedText: " << message.audioInfo->recognizedText << " audioInfo->duration: " << message.audioInfo->duration << endl;
-        }
-
         if (message.translatedInfo != nullptr) {
             cout << "translatedInfo->sourceLanguage: " << message.translatedInfo->sourceLanguage << " translatedInfo->targetLanguage: " << message.translatedInfo->targetLanguage << " message.translatedInfo->sourceText: " << message.translatedInfo->sourceText << " translatedInfo->targetText: " << message.translatedInfo->targetText << endl;
+        }
+        if (message.fileInfo != nullptr) {
+            cout << "fileInfo->url: " << message.fileInfo->url << " fileInfo->surl: " << message.fileInfo->surl << 
+                " fileInfo->language: " << message.fileInfo->language << " fileInfo->size: " << message.fileInfo->size <<
+                " fileInfo->duration: " << message.fileInfo->duration << " fileInfo->isRTMAudio: " << message.fileInfo->isRTMAudio << endl;
         }
     } 
 
@@ -160,6 +161,69 @@ void testToken(RTMServerClientPtr client)
         isErrorCode("[Async removeDevice]", errorCode);
     });
 
+    errorCode = client->addDevicePushOption(123456, P2PMessage, 654321, {66});
+    isErrorCode("[Sync addDevicePushOption]", errorCode);
+
+    client->addDevicePushOption(123456, P2PMessage, 654321, {67}, [](int32_t errorCode){
+        isErrorCode("[Async addDevicePushOption]", errorCode);
+    });
+
+    errorCode = client->removeDevicePushOption(123456, P2PMessage, 654321, {66});
+    isErrorCode("[Sync removeDevicePushOption]", errorCode);
+
+    client->removeDevicePushOption(123456, P2PMessage, 654321, {67}, [](int32_t errorCode){
+        isErrorCode("[Async removeDevicePushOption]", errorCode);
+    });
+
+    map<string, set<int8_t>> p2p;
+    map<string, set<int8_t>> group;
+    errorCode = client->getDevicePushOption(p2p, group, 123456);
+    if (!isErrorCode("[Sync getDevicePushOption]", errorCode))
+    {
+        cout << "p2p: ";
+        for (auto& kv : p2p)
+        {
+            cout << kv.first << ":" << endl;
+            for (auto type : kv.second)
+                cout << type << " ";
+            cout << endl;
+        }
+        cout << endl;
+        cout << "group: ";
+        for (auto& kv : group)
+        {
+            cout << kv.first << ":" << endl;
+            for (auto type : kv.second)
+                cout << type << " ";
+            cout << endl;
+        }
+        cout << endl;
+    }
+
+    client->getDevicePushOption(123456, [](map<string, set<int8_t>> p2p, map<string, set<int8_t>> group, int32_t errorCode) {
+        if (!isErrorCode("[Sync getDevicePushOption]", errorCode))
+        {
+            cout << "p2p: ";
+            for (auto &kv : p2p)
+            {
+                cout << kv.first << ":" << endl;
+                for (auto type : kv.second)
+                    cout << type << " ";
+                cout << endl;
+            }
+            cout << endl;
+            cout << "group: ";
+            for (auto &kv : group)
+            {
+                cout << kv.first << ":" << endl;
+                for (auto type : kv.second)
+                    cout << type << " ";
+                cout << endl;
+            }
+            cout << endl;
+        }
+    });
+
     errorCode = client->kickout(123456, "");
     isErrorCode("[Sync kickout]", errorCode);
 
@@ -170,113 +234,77 @@ void testToken(RTMServerClientPtr client)
 
 void testChat(RTMServerClientPtr client)
 {
-    int32_t modifyTime;
-    int32_t errorCode = client->sendChat(modifyTime, 123, 123456, "test message", "");
+    int64_t mid;
+    int32_t errorCode = client->sendChat(mid, 123, 123456, "test message", "");
     if (!isErrorCode("[Sync sendChat]", errorCode))
-        cout << "get modifyTime: " << modifyTime << endl;
+        cout << "get mid: " << mid << endl;
 
-    client->sendChat(123, 123456, "test message", "", [](int32_t modifyTime, int32_t errorCode) {
+    client->sendChat(123, 123456, "test message", "", [](int64_t mid, int32_t errorCode) {
         if (!isErrorCode("[Async sendChat]", errorCode))
-            cout << "get modifyTime: " << modifyTime << endl;
+            cout << "get mid: " << mid << endl;
     });
 
-    errorCode = client->sendAudio(modifyTime, 123, 123456, "test message", "");
-    if (!isErrorCode("[Sync sendAudio]", errorCode))
-        cout << "get modifyTime: " << modifyTime << endl;
-
-    client->sendAudio(123, 123456, "test message", "", [](int32_t modifyTime, int32_t errorCode) {
-        if (!isErrorCode("[Async sendAudio]", errorCode))
-            cout << "get modifyTime: " << modifyTime << endl;
-    });
-
-    errorCode = client->sendCmd(modifyTime, 123, 123456, "test message", "");
+    errorCode = client->sendCmd(mid, 123, 123456, "test message", "");
     if (!isErrorCode("[Sync sendCmd]", errorCode))
-        cout << "get modifyTime: " << modifyTime << endl;
+        cout << "get mid: " << mid << endl;
 
-    client->sendCmd(123, 123456, "test message", "", [](int32_t modifyTime, int32_t errorCode) {
+    client->sendCmd(123, 123456, "test message", "", [](int64_t mid, int32_t errorCode) {
         if (!isErrorCode("[Async sendCmd]", errorCode))
-            cout << "get modifyTime: " << modifyTime << endl;
+            cout << "get mid: " << mid << endl;
     });
 
-    errorCode = client->sendGroupChat(modifyTime, 123, 123456, "test message", "");
+    errorCode = client->sendGroupChat(mid, 123, 123456, "test message", "");
     if (!isErrorCode("[Sync sendGroupChat]", errorCode))
-        cout << "get modifyTime: " << modifyTime << endl;
+        cout << "get mid: " << mid << endl;
 
-    client->sendGroupChat(123, 123456, "test message", "", [](int32_t modifyTime, int32_t errorCode) {
+    client->sendGroupChat(123, 123456, "test message", "", [](int64_t mid, int32_t errorCode) {
         if (!isErrorCode("[Async sendGroupChat]", errorCode))
-            cout << "get modifyTime: " << modifyTime << endl;
+            cout << "get mid: " << mid << endl;
     });
 
-    errorCode = client->sendGroupAudio(modifyTime, 123, 123456, "test message", "");
-    if (!isErrorCode("[Sync sendGroupAudio]", errorCode))
-        cout << "get modifyTime: " << modifyTime << endl;
-
-    client->sendGroupAudio(123, 123456, "test message", "", [](int32_t modifyTime, int32_t errorCode) {
-        if (!isErrorCode("[Async sendGroupAudio]", errorCode))
-            cout << "get modifyTime: " << modifyTime << endl;
-    });
-
-    errorCode = client->sendGroupCmd(modifyTime, 123, 123456, "test message", "");
+    errorCode = client->sendGroupCmd(mid, 123, 123456, "test message", "");
     if (!isErrorCode("[Sync sendGroupCmd]", errorCode))
-        cout << "get modifyTime: " << modifyTime << endl;
+        cout << "get mid: " << mid << endl;
 
-    client->sendGroupCmd(123, 123456, "test message", "", [](int32_t modifyTime, int32_t errorCode) {
+    client->sendGroupCmd(123, 123456, "test message", "", [](int64_t mid, int32_t errorCode) {
         if (!isErrorCode("[Async sendGroupCmd]", errorCode))
-            cout << "get modifyTime: " << modifyTime << endl;
+            cout << "get mid: " << mid << endl;
     });
 
-    errorCode = client->sendRoomChat(modifyTime, 123, 123456, "test message", "");
+    errorCode = client->sendRoomChat(mid, 123, 123456, "test message", "");
     if (!isErrorCode("[Sync sendRoomChat]", errorCode))
-        cout << "get modifyTime: " << modifyTime << endl;
+        cout << "get mid: " << mid << endl;
 
-    client->sendRoomChat(123, 123456, "test message", "", [](int32_t modifyTime, int32_t errorCode) {
+    client->sendRoomChat(123, 123456, "test message", "", [](int64_t mid, int32_t errorCode) {
         if (!isErrorCode("[Async sendRoomChat]", errorCode))
-            cout << "get modifyTime: " << modifyTime << endl;
+            cout << "get mid: " << mid << endl;
     });
 
-    errorCode = client->sendRoomAudio(modifyTime, 123, 123456, "test message", "");
-    if (!isErrorCode("[Sync sendRoomAudio]", errorCode))
-        cout << "get modifyTime: " << modifyTime << endl;
-
-    client->sendRoomAudio(123, 123456, "test message", "", [](int32_t modifyTime, int32_t errorCode) {
-        if (!isErrorCode("[Async sendRoomAudio]", errorCode))
-            cout << "get modifyTime: " << modifyTime << endl;
-    });
-
-    errorCode = client->sendRoomCmd(modifyTime, 123, 123456, "test message", "");
+    errorCode = client->sendRoomCmd(mid, 123, 123456, "test message", "");
     if (!isErrorCode("[Sync sendRoomCmd]", errorCode))
-        cout << "get modifyTime: " << modifyTime << endl;
+        cout << "get mid: " << mid << endl;
 
-    client->sendRoomCmd(123, 123456, "test message", "", [](int32_t modifyTime, int32_t errorCode) {
+    client->sendRoomCmd(123, 123456, "test message", "", [](int64_t mid, int32_t errorCode) {
         if (!isErrorCode("[Async sendRoomCmd]", errorCode))
-            cout << "get modifyTime: " << modifyTime << endl;
+            cout << "get mid: " << mid << endl;
     });
 
-    errorCode = client->broadcastChat(modifyTime, 111, "test message", "");
+    errorCode = client->broadcastChat(mid, 111, "test message", "");
     if (!isErrorCode("[Sync broadcastChat]", errorCode))
-        cout << "get modifyTime: " << modifyTime << endl;
+        cout << "get mid: " << mid << endl;
 
-    client->broadcastChat(111, "test message", "", [](int32_t modifyTime, int32_t errorCode) {
+    client->broadcastChat(111, "test message", "", [](int64_t mid, int32_t errorCode) {
         if (!isErrorCode("[Async broadcastChat]", errorCode))
-            cout << "get modifyTime: " << modifyTime << endl;
+            cout << "get mid: " << mid << endl;
     });
 
-    errorCode = client->broadcastAudio(modifyTime, 111, "test message", "");
-    if (!isErrorCode("[Sync broadcastAudio]", errorCode))
-        cout << "get modifyTime: " << modifyTime << endl;
-
-    client->broadcastAudio(111, "test message", "", [](int32_t modifyTime, int32_t errorCode) {
-        if (!isErrorCode("[Async broadcastAudio]", errorCode))
-            cout << "get modifyTime: " << modifyTime << endl;
-    });
-
-    errorCode = client->broadcastCmd(modifyTime, 111, "test message", "");
+    errorCode = client->broadcastCmd(mid, 111, "test message", "");
     if (!isErrorCode("[Sync broadcastCmd]", errorCode))
-        cout << "get modifyTime: " << modifyTime << endl;
+        cout << "get mid: " << mid << endl;
 
-    client->broadcastCmd(111, "test message", "", [](int32_t modifyTime, int32_t errorCode) {
+    client->broadcastCmd(111, "test message", "", [](int64_t mid, int32_t errorCode) {
         if (!isErrorCode("[Async broadcastCmd]", errorCode))
-            cout << "get modifyTime: " << modifyTime << endl;
+            cout << "get mid: " << mid << endl;
     });
 
     HistoryMessageResult result;
@@ -287,6 +315,17 @@ void testChat(RTMServerClientPtr client)
     client->getGroupChat(123456, true, 20, 0, 0, 0, 0, [](HistoryMessageResult result, int32_t errorCode) {
         if (!isErrorCode("[Async getGroupChat]", errorCode))
             cout << "HistoryMessageResult.count: " << result.count << endl;
+    });
+
+    int32_t sender = 0;
+    int32_t num = 0;
+    errorCode = client->getMessageNum(sender, num, GroupMessage, 123456);
+    if (!isErrorCode("[Sync getMessageNum]", errorCode))
+        cout << "sender: " << sender << " num: " << num << endl;
+
+    client->getMessageNum(GroupMessage, 123456, [](int32_t sender, int32_t num, int32_t errorCode) {
+        if (!isErrorCode("[Async getMessageNum]", errorCode))
+            cout << "sender: " << sender << " num: " << num << endl;
     });
 }
 
@@ -327,33 +366,34 @@ void testFile(RTMServerClientPtr client)
     if (!client->loadFile("/Users/zhaojianjun/Downloads/audio1.bin", fileData))
         return;
     
-    int32_t modifyTime;
-    int32_t errorCode = client->sendFile(modifyTime, 111, 123456, 50, fileData, "audio1.bin", 10);
+    int64_t mid;
+    map<string, string> attrs;
+    int32_t errorCode = client->sendFile(mid, 111, 123456, 50, fileData, "audio1.bin", "bin", attrs, 10);
     if (!isErrorCode("[Sync sendFile]", errorCode))
-        cout << "get modifyTime: " << modifyTime << endl;
+        cout << "get mid: " << mid << endl;
 
-    client->sendFile(111, 123456, 50, fileData, "audio1.bin", [](int32_t modifyTime, int32_t errorCode) {
+    client->sendFile(111, 123456, 50, fileData, "audio1.bin", [](int64_t mid, int32_t errorCode) {
         if (!isErrorCode("[Async sendFile]", errorCode))
-            cout << "get modifyTime: " << modifyTime << endl;
-    }, 10);
+            cout << "get mid: " << mid << endl;
+    }, "bin", attrs, 10);
 
-    errorCode = client->sendGroupFile(modifyTime, 111, 123456, 50, fileData, "audio1.bin", 10);
+    errorCode = client->sendGroupFile(mid, 111, 123456, 50, fileData, "audio1.bin", "bin", attrs, 10);
     if (!isErrorCode("[Sync sendGroupFile]", errorCode))
-        cout << "get modifyTime: " << modifyTime << endl;
+        cout << "get mid: " << mid << endl;
 
-    client->sendGroupFile(111, 123456, 50, fileData, "audio1.bin", [](int32_t modifyTime, int32_t errorCode) {
+    client->sendGroupFile(111, 123456, 50, fileData, "audio1.bin", [](int64_t mid, int32_t errorCode) {
         if (!isErrorCode("[Async sendGroupFile]", errorCode))
-            cout << "get modifyTime: " << modifyTime << endl;
-    }, 10);
+            cout << "get mid: " << mid << endl;
+    }, "bin", attrs, 10);
 
-    errorCode = client->sendRoomFile(modifyTime, 111, 123456, 50, fileData, "audio1.bin", 10);
+    errorCode = client->sendRoomFile(mid, 111, 123456, 50, fileData, "audio1.bin", "bin", attrs, 10);
     if (!isErrorCode("[Sync sendRoomFile]", errorCode))
-        cout << "get modifyTime: " << modifyTime << endl;
+        cout << "get mid: " << mid << endl;
 
-    client->sendRoomFile(111, 123456, 50, fileData, "audio1.bin", [](int32_t modifyTime, int32_t errorCode) {
+    client->sendRoomFile(111, 123456, 50, fileData, "audio1.bin", [](int64_t mid, int32_t errorCode) {
         if (!isErrorCode("[Async sendRoomFile]", errorCode))
-            cout << "get modifyTime: " << modifyTime << endl;
-    }, 10);
+            cout << "get mid: " << mid << endl;
+    }, "bin", attrs, 10);
 }
 
 void testFriend(RTMServerClientPtr client)
@@ -405,23 +445,83 @@ void testGroup(RTMServerClientPtr client)
     client->deleteGroup(123456, [](int32_t errorCode) {
         isErrorCode("[Async deleteGroup]", errorCode);
     });
+
+    errorCode = client->addGroupBan(0, 123456, 10, 10);
+    isErrorCode("[Sync addGroupBan]", errorCode);
+
+    client->addGroupBan(0, 123456, 10, [](int32_t errorCode) {
+        isErrorCode("[Async addGroupBan]", errorCode);
+    }, 10);
+
+    errorCode = client->removeGroupBan(0, 123456, 10);
+    isErrorCode("[Sync removeGroupBan]", errorCode);
+
+    client->removeGroupBan(0, 123456, [](int32_t errorCode) {
+        isErrorCode("[Async removeGroupBan]", errorCode);
+    }, 10);
 }
 
 void testRoom(RTMServerClientPtr client)
 {
-    int32_t errorCode = client->addRoomBan(123, 123456, 10);
+    int32_t errorCode = client->addRoomMember(123, 123, 10);
+    isErrorCode("[Sync addRoomMember]", errorCode);
+
+    client->addRoomMember(123, 456, [](int32_t errorCode) {
+        isErrorCode("[Async addRoomMember]", errorCode);
+    }, 10);
+
+    set<int64_t> uids;
+    errorCode = client->getRoomMembers(uids, 123, 10);
+    isErrorCode("[Sync getRoomMembers]", errorCode);
+    
+    client->getRoomMembers(123, [](set<int64_t> uids, int32_t errorCode) {
+        isErrorCode("[Async getRoomMembers]", errorCode);
+    }, 10);
+
+    map<string, int32_t> count;
+    errorCode = client->getRoomCount(count, 123, 10);
+    isErrorCode("[Sync getRoomCount]", errorCode);
+    
+    client->getRoomCount(123, [](map<string, int32_t> count, int32_t errorCode) {
+        isErrorCode("[Async getRoomCount]", errorCode);
+    }, 10);
+
+    errorCode = client->deleteRoomMember(123, 123, 10);
+    isErrorCode("[Sync deleteRoomMember]", errorCode);
+
+    client->deleteRoomMember(123, 456, [](int32_t errorCode) {
+        isErrorCode("[Async deleteRoomMember]", errorCode);
+    }, 10);
+
+
+    errorCode = client->addRoomBan(123, 123456, 10, 10);
     isErrorCode("[Sync addRoomBan]", errorCode);
 
     client->addRoomBan(123, 123456, 10, [](int32_t errorCode) {
         isErrorCode("[Async addRoomBan]", errorCode);
-    });
+    }, 10);
 
-    errorCode = client->removeRoomBan(123, 123456);
+    errorCode = client->removeRoomBan(123, 123456, 10);
     isErrorCode("[Sync removeRoomBan]", errorCode);
 
     client->removeRoomBan(123, 123456, [](int32_t errorCode) {
         isErrorCode("[Async removeRoomBan]", errorCode);
-    });
+    }, 10);
+
+    errorCode = client->addRoomBan(0, 123456, 10, 10);
+    isErrorCode("[Sync addRoomBan]", errorCode);
+
+    client->addRoomBan(0, 123456, 10, [](int32_t errorCode) {
+        isErrorCode("[Async addRoomBan]", errorCode);
+    }, 10);
+
+    errorCode = client->removeRoomBan(0, 123456, 10);
+    isErrorCode("[Sync removeRoomBan]", errorCode);
+
+    client->removeRoomBan(0, 123456, [](int32_t errorCode) {
+        isErrorCode("[Async removeRoomBan]", errorCode);
+    }, 10);
+
 }
 
 void testUser(RTMServerClientPtr client)
@@ -444,10 +544,10 @@ void testUser(RTMServerClientPtr client)
     });
 
     errorCode = client->removeProjectBlack(123456);
-    isErrorCode("[Sync addRoomMember]", errorCode);
+    isErrorCode("[Sync removeProjectBlack]", errorCode);
 
     client->removeProjectBlack(123456, [](int32_t errorCode) {
-        isErrorCode("[Async addRoomMember]", errorCode);
+        isErrorCode("[Async removeProjectBlack]", errorCode);
     });
 
     bool isBlack;

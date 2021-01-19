@@ -2,32 +2,55 @@
 
 [TOC]
 
-### AudioInfo
-
-```
-struct AudioInfo
-{
-    string sourceLanguage;   // 源语言类型
-    string recognizedLanguage;  // 识别的语言类型
-    string recognizedText;   // 识别的文字
-    int32_t duration;   // 语音时长（ms）
-};
-```
-
-
-
 ### TranslatedInfo
 
 ```
 struct TranslatedInfo
 {
-    string sourceLanguage;   // 源语言类型
-    string targetLanguage;   // 目标语言类型
-    string sourceText;       // 原始文字内容
-    string targetText;       // 目标文字内容
+    string sourceLanguage;   // source language
+    string targetLanguage;   // target language
+    string sourceText;       // source text
+    string targetText;       // target text
 };
 ```
 
+
+### FileInfo
+
+```
+struct FileInfo
+{
+    string url;
+    string surl;
+    string language;
+    int32_t size;
+    int32_t duration;
+    bool isRTMAudio;
+};
+
+
+### CheckResult
+
+```
+struct CheckResult
+{
+    int32_t result;
+    vector<int32_t> tags;
+};
+```
+
+
+### TextCheckResult
+
+```
+struct TextCheckResult
+{
+    string text;
+    int32_t result;
+    vector<string> wlist;
+    vector<int32_t> tags;
+};
+```
 
 
 ### RTMMessage
@@ -59,6 +82,12 @@ enum ChatMessageType
     TextChatMType = 30,
     AudioChatMType = 31,
     CmdChatMType = 32,
+    RealAudioType = 35,
+    RealVideoType = 36,
+    ImageFileType = 40,
+    AudioFileType = 41,
+    VideoFileType = 42,
+    NormalFileType = 50,
 };
 ```
 
@@ -145,28 +174,28 @@ enum ProfanityType
 
 enum TranslateLanguage
 {
-    ar,             //阿拉伯语
-    nl,             //荷兰语
-    en,             //英语
-    fr,             //法语
-    de,             //德语
-    el,             //希腊语
-    id,             //印度尼西亚语
-    it,             //意大利语
-    ja,             //日语
-    ko,             //韩语
-    no,             //挪威语
-    pl,             //波兰语
-    pt,             //葡萄牙语
-    ru,             //俄语
-    es,             //西班牙语
-    sv,             //瑞典语
-    tl,             //塔加路语（菲律宾语）
-    th,             //泰语
-    tr,             //土耳其语
-    vi,             //越南语
-    zh_cn,       //中文（简体）
-    zh_tw,       //中文（繁体）
+    ar,             //Arabic
+    nl,             //Dutch
+    en,             //English
+    fr,             //French
+    de,             //German
+    el,             //Greek
+    id,             //Indonesian
+    it,             //Italian
+    ja,             //Japanese
+    ko,             //Korean
+    no,             //Norwegian
+    pl,             //Polish
+    pt,             //Portuguese
+    ru,             //Russian
+    es,             //Spanish
+    sv,             //Swedish
+    tl,             //Tagalog(Filipino)
+    th,             //Thai
+    tr,             //Turkish
+    vi,             //Vietnamese
+    zh_cn,       //Chinese(Simplified)
+    zh_tw,       //Chinese(Traditional)
     None
 };
 ```

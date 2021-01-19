@@ -1,4 +1,8 @@
 #include "RTMServerClient.h"
+#include "FPJson.h"
+#include "document.h"
+#include "writer.h"
+#include "stringbuffer.h"
 
 using namespace rtm;
 
@@ -148,26 +152,12 @@ bool RTMServerClient::loadFile(const string& filePath, string& fileData)
     return true;
 }
 
-FPQuestPtr RTMServerClient::_getSendFileQuest(const string& token, int64_t from, SendFileInfo info, int64_t to, const set<int64_t>& tos, int64_t gid, int64_t rid, int8_t mtype, const string& fileData, const string& fileName)
+FPQuestPtr RTMServerClient::_getSendFileQuest(const string& token, int64_t from, SendFileInfo info, int64_t to, const set<int64_t>& tos, int64_t gid, int64_t rid, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension, const map<string, string>& attrs, int64_t& mid)
 {
     string fileMD5 = _calcMD5(fileData);
     transform(fileMD5.begin(), fileMD5.end(), fileMD5.begin(), ::tolower);
     string sign = _calcMD5(fileMD5 + ":" + token);
     transform(sign.begin(), sign.end(), sign.begin(), ::tolower);
-    string attrs = "{\"sign\":\"" + sign + "\"";
-
-    if (fileName.size() > 0) {
-        attrs += ",\"filename\":\"" + fileName + "\"";
-
-        size_t idx = fileName.find_last_of(".");
-        if (idx != (size_t)-1) {
-            string ext = fileName.substr(idx + 1);
-            attrs += ",\"ext\":\"" + ext + "\"";
-        }
-    }
-
-    attrs += "}";
-
     shared_ptr<FPQWriter> qw;
     if (info.type == P2PFile) {
         qw.reset(new FPQWriter(8, "sendfile"));
@@ -185,18 +175,21 @@ FPQuestPtr RTMServerClient::_getSendFileQuest(const string& token, int64_t from,
         qw.reset(new FPQWriter(7, "broadcastfile"));
     }
 
+    mid = MidGenerator::genMid();
     qw->param("pid", _pid);
     qw->param("token", token);
     qw->param("mtype", mtype);
     qw->param("from", from);
-    qw->param("mid", MidGenerator::genMid());
+    qw->param("mid", mid);
     qw->param("file", fileData);
-    qw->param("attrs", attrs);
+    qw->param("attrs", _buildFileAttrs(sign, fileName, fileExtension, attrs));
     return qw->take();
 }
 
-int32_t RTMServerClient::_sendFileProcess(int32_t& modifyTime, FileTokenType tokenType, int64_t from, int64_t to, const set<int64_t>& tos, int64_t gid, int64_t rid, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout)
+int32_t RTMServerClient::_sendFileProcess(int64_t& mid, FileTokenType tokenType, int64_t from, int64_t to, const set<int64_t>& tos, int64_t gid, int64_t rid, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension, const map<string, string>& attrs, int32_t timeout)
 {
+    if (!checkFileMessageType(mtype))
+        return RTM_EC_INVALID_MTYPE;
     int64_t lastActionTimestamp = TimeUtil::curr_msec();
     if (timeout == 0)
         timeout = _questTimeout;
@@ -223,10 +216,11 @@ int32_t RTMServerClient::_sendFileProcess(int32_t& modifyTime, FileTokenType tok
     if (timeout <= 0)
         return FPNN_EC_CORE_TIMEOUT;
 
-    FPQuestPtr quest = _getSendFileQuest(token, from, info, to, tos, gid, rid, mtype, fileData, fileName);
+    FPQuestPtr quest = _getSendFileQuest(token, from, info, to, tos, gid, rid, mtype, fileData, fileName, fileExtension, attrs, mid);
     TCPClientPtr client = _fecthFileGateClient(endpoint);
 
-    if (!client) {
+    if (!client)
+    {
         client = TCPClient::createClient(endpoint, true);
         if (client->connect())
             _activeFileGateClient(endpoint, client);
@@ -240,17 +234,18 @@ int32_t RTMServerClient::_sendFileProcess(int32_t& modifyTime, FileTokenType tok
 
     FPAnswerPtr answer = client->sendQuest(quest, timeout);
     QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
+    _checkAnswerError(answer, result);
     return result.errorCode;
 }
 
 void RTMServerClient::_sendFileProcess(FileTokenType tokenType, int64_t from, int64_t to, const set<int64_t>& tos, int64_t gid, int64_t rid, int8_t mtype, const string& fileData, const string& fileName, 
-        std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+        std::function<void (int64_t mid, int32_t errorCode)> callback, const string& fileExtension, const map<string, string>& attrs, int32_t timeout)
 {
+    if (!checkFileMessageType(mtype))
+    {
+        callback(0, RTM_EC_INVALID_MTYPE);
+        return;
+    }
     int64_t lastActionTimestamp = TimeUtil::curr_msec();
     if (timeout == 0)
         timeout = _questTimeout;
@@ -267,7 +262,7 @@ void RTMServerClient::_sendFileProcess(FileTokenType tokenType, int64_t from, in
         info.toId = rid;
     info.type = tokenType;
 
-    _fileTokenAction(from, tokenType, info.toId, info.toIds, [this, from, info, to, tos, gid, rid, mtype, fileData, fileName, timeout, callback, lastActionTimestamp](string token, string endpoint, int32_t errorCode) {
+    _fileTokenAction(from, tokenType, info.toId, info.toIds, [this, from, info, to, tos, gid, rid, mtype, fileData, fileName, fileExtension, attrs, timeout, callback, lastActionTimestamp](string token, string endpoint, int32_t errorCode) {
         if (errorCode != FPNN_EC_OK) {
             callback(0, errorCode);
             return;
@@ -282,7 +277,8 @@ void RTMServerClient::_sendFileProcess(FileTokenType tokenType, int64_t from, in
             return;
         }
 
-        FPQuestPtr quest = _getSendFileQuest(token, from, info, to, tos, gid, rid, mtype, fileData, fileName);
+        int64_t mid = 0;
+        FPQuestPtr quest = _getSendFileQuest(token, from, info, to, tos, gid, rid, mtype, fileData, fileName, fileExtension, attrs, mid);
         TCPClientPtr client = _fecthFileGateClient(endpoint);
 
         if (!client) {
@@ -301,12 +297,10 @@ void RTMServerClient::_sendFileProcess(FileTokenType tokenType, int64_t from, in
             return;
         }
 
-        bool status = client->sendQuest(quest, [this, client, callback](FPAnswerPtr answer, int32_t errorCode) {
+        bool status = client->sendQuest(quest, [this, client, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
             QuestResult result;
             if (!_checkAnswerError(answer, result)) {
-                FPAReader ar(answer);
-                int32_t modifyTime = ar.getInt("mtime");
-                callback(modifyTime, result.errorCode);
+                callback(mid, result.errorCode);
             } else
                 callback(0, result.errorCode);
         }, timeout2);
@@ -316,52 +310,138 @@ void RTMServerClient::_sendFileProcess(FileTokenType tokenType, int64_t from, in
     }, timeout);
 }
 
-int32_t RTMServerClient::sendFile(int32_t& modifyTime, int64_t fromUid, int64_t toUid, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout)
+int32_t RTMServerClient::sendFile(int64_t& mid, int64_t fromUid, int64_t toUid, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension, const map<string, string>& attrs, int32_t timeout)
 {
-    return _sendFileProcess(modifyTime, P2PFile, fromUid, toUid, {}, 0, 0, mtype, fileData, fileName, timeout); 
+    return _sendFileProcess(mid, P2PFile, fromUid, toUid, {}, 0, 0, mtype, fileData, fileName, fileExtension, attrs, timeout); 
 }
 
-void RTMServerClient::sendFile(int64_t fromUid, int64_t toUid, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::sendFile(int64_t fromUid, int64_t toUid, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int64_t mid, int32_t errorCode)> callback, const string& fileExtension, const map<string, string>& attrs, int32_t timeout)
 {
-    _sendFileProcess(P2PFile, fromUid, toUid, {}, 0, 0, mtype, fileData, fileName, callback, timeout);
+    _sendFileProcess(P2PFile, fromUid, toUid, {}, 0, 0, mtype, fileData, fileName, callback, fileExtension, attrs, timeout);
 }
 
-int32_t RTMServerClient::sendFiles(int32_t& modifyTime, int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout)
+int32_t RTMServerClient::sendFiles(int64_t& mid, int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension, const map<string, string>& attrs, int32_t timeout)
 {
-    return _sendFileProcess(modifyTime, MultiFiles, fromUid, 0, toUids, 0, 0, mtype, fileData, fileName, timeout);
+    return _sendFileProcess(mid, MultiFiles, fromUid, 0, toUids, 0, 0, mtype, fileData, fileName, fileExtension, attrs, timeout);
 }
 
-void RTMServerClient::sendFiles(int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::sendFiles(int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int64_t mid, int32_t errorCode)> callback, const string& fileExtension, const map<string, string>& attrs, int32_t timeout)
 {
-    _sendFileProcess(MultiFiles, fromUid, 0, toUids, 0, 0, mtype, fileData, fileName, callback, timeout);
+    _sendFileProcess(MultiFiles, fromUid, 0, toUids, 0, 0, mtype, fileData, fileName, callback, fileExtension, attrs, timeout);
 }
 
-int32_t RTMServerClient::sendGroupFile(int32_t& modifyTime, int64_t fromUid, int64_t groupId, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout)
+int32_t RTMServerClient::sendGroupFile(int64_t& mid, int64_t fromUid, int64_t groupId, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension, const map<string, string>& attrs, int32_t timeout)
 {
-    return _sendFileProcess(modifyTime, GroupFile, fromUid, 0, {}, groupId, 0, mtype, fileData, fileName, timeout);
+    return _sendFileProcess(mid, GroupFile, fromUid, 0, {}, groupId, 0, mtype, fileData, fileName, fileExtension, attrs, timeout);
 }
 
-void RTMServerClient::sendGroupFile(int64_t fromUid, int64_t groupId, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::sendGroupFile(int64_t fromUid, int64_t groupId, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int64_t mid, int32_t errorCode)> callback, const string& fileExtension, const map<string, string>& attrs, int32_t timeout)
 {
-    _sendFileProcess(GroupFile, fromUid, 0, {}, groupId, 0, mtype, fileData, fileName, callback, timeout);
+    _sendFileProcess(GroupFile, fromUid, 0, {}, groupId, 0, mtype, fileData, fileName, callback, fileExtension, attrs, timeout);
 }
 
-int32_t RTMServerClient::sendRoomFile(int32_t& modifyTime, int64_t fromUid, int64_t roomId, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout)
+int32_t RTMServerClient::sendRoomFile(int64_t& mid, int64_t fromUid, int64_t roomId, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension, const map<string, string>& attrs, int32_t timeout)
 {
-    return _sendFileProcess(modifyTime, RoomFile, fromUid, 0, {}, 0, roomId, mtype, fileData, fileName, timeout); 
+    return _sendFileProcess(mid, RoomFile, fromUid, 0, {}, 0, roomId, mtype, fileData, fileName, fileExtension, attrs, timeout); 
 }
 
-void RTMServerClient::sendRoomFile(int64_t fromUid, int64_t roomId, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::sendRoomFile(int64_t fromUid, int64_t roomId, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int64_t mid, int32_t errorCode)> callback, const string& fileExtension, const map<string, string>& attrs, int32_t timeout)
 {
-    _sendFileProcess(RoomFile, fromUid, 0, {}, 0, roomId, mtype, fileData, fileName, callback, timeout);
+    _sendFileProcess(RoomFile, fromUid, 0, {}, 0, roomId, mtype, fileData, fileName, callback, fileExtension, attrs, timeout);
 }
 
-int32_t RTMServerClient::broadcastFile(int32_t& modifyTime, int64_t fromUid, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout)
+int32_t RTMServerClient::broadcastFile(int64_t& mid, int64_t fromUid, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension, const map<string, string>& attrs, int32_t timeout)
 {
-    return _sendFileProcess(modifyTime, BroadcastFile, fromUid, 0, {}, 0, 0, mtype, fileData, fileName, timeout); 
+    return _sendFileProcess(mid, BroadcastFile, fromUid, 0, {}, 0, 0, mtype, fileData, fileName, fileExtension, attrs, timeout); 
 }
 
-void RTMServerClient::broadcastFile(int64_t fromUid, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::broadcastFile(int64_t fromUid, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int64_t mid, int32_t errorCode)> callback, const string& fileExtension, const map<string, string>& attrs, int32_t timeout)
 {
-    _sendFileProcess(BroadcastFile, fromUid, 0, {}, 0, 0, mtype, fileData, fileName, callback, timeout);
+    _sendFileProcess(BroadcastFile, fromUid, 0, {}, 0, 0, mtype, fileData, fileName, callback, fileExtension, attrs, timeout);
+}
+
+void RTMServerClient::buildFileInfo(RTMMessage& message)
+{
+    message.fileInfo = make_shared<FileInfo>();
+    parseFileMessage(message);
+    parseFileAttrs(message);
+}
+
+void RTMServerClient::parseFileMessage(RTMMessage& message)
+{
+    rapidjson::Document document;
+    if (document.Parse(message.message.c_str()).HasParseError())
+        return;
+    if (!document.IsObject())
+        return;
+    if (document.HasMember("url") && document["url"].IsString())
+        message.fileInfo->url = document["url"].GetString();
+    if (document.HasMember("size") && document["size"].IsInt())
+        message.fileInfo->size = document["size"].GetInt();
+    if (message.messageType == ImageFileType)
+    {
+        if (document.HasMember("surl") && document["surl"].IsString())
+            message.fileInfo->surl = document["surl"].GetString();
+    }
+    message.message = "";
+}
+
+void RTMServerClient::parseFileAttrs(RTMMessage& message)
+{
+    rapidjson::Document document;
+    if (document.Parse(message.attrs.c_str()).HasParseError())
+        return;
+    if (!document.IsObject())
+        return;
+    if (document.HasMember("rtm"))
+    {
+        const auto& rtm = document["rtm"];
+        auto iter = rtm.FindMember("type");
+        if (iter != rtm.MemberEnd() && iter->value.IsString())
+        {
+            string type = iter->value.GetString();
+            if (type == "audiomsg")
+                message.fileInfo->isRTMAudio = true;
+        }
+        if (message.fileInfo->isRTMAudio == true)
+        {
+            iter = rtm.FindMember("lang");
+            if (iter != rtm.MemberEnd() && iter->value.IsString())
+                message.fileInfo->language = iter->value.GetString();
+            iter = rtm.FindMember("duration");
+            if (iter != rtm.MemberEnd() && iter->value.IsInt())
+                message.fileInfo->duration = iter->value.GetInt();
+        }
+    }
+    if (document.HasMember("custom"))
+    {
+        rapidjson::StringBuffer buffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+        document["custom"].Accept(writer);
+        message.attrs = buffer.GetString();
+    }
+}
+
+bool RTMServerClient::checkFileMessageType(int8_t messageType)
+{
+    if (messageType >= ImageFileType && messageType <= NormalFileType)
+        return true;
+    return false;
+}
+
+string RTMServerClient::_buildFileAttrs(const string& sign, const string& fileName, const string& fileExtension, const map<string, string>& attrs)
+{
+    Json attr;
+    Json rtm;
+    rtm.add("sign", sign);
+
+    if (!fileName.empty()) 
+        rtm.add("filename", fileName);
+    if (!fileExtension.empty())
+        rtm.add("fileExtension", fileExtension);
+    if (!attrs.empty())
+        attr.add("custom", attrs);
+    else
+        attr.add("custom", "");
+    return attr.str();
 }

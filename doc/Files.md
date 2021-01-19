@@ -9,234 +9,234 @@
 #### SendFile
 
 	//-- Sync Method
-	int32_t sendFile(int32_t& modifyTime, int64_t fromUid, int64_t toUid, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout = 0);
+	int32_t sendFile(int64_t& mid, int64_t fromUid, int64_t toUid, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout = 0);
 	
 	//-- Async Method
-	void sendFile(int64_t fromUid, int64_t toUid, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
+	void sendFile(int64_t fromUid, int64_t toUid, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
 
-发送文件
+Send File
 
-参数:
+Parameters:
 
 + `fromUid` 
 
-  发送者用户id
+  sender user id
 
 + `toUid` 
 
-  接收者用户id
+  receiver user id
 
 + `mtype` 
 
-  消息类型，mtype <= 50，系统保留使用，一般有特殊含义，业务使用 超过50的mtype
+  message type ,refer [RTM Structures](Structures.md)
 
 + `fileData` 
 
-  文件内容
+  file content
 
 + `fileName` 
 
-  文件名字
+  file name
 
 + `attrs` 
 
-  附加信息
+  additional information
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数modifyTime,  服务器返回的时间戳
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数modifyTime,  服务器返回的时间戳
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter mid, message id
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter mid, message id
 
 
 
 #### SendFiles
 
 	//-- Sync Method
-	int32_t sendFiles(int32_t& modifyTime, int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout = 0);
+	int32_t sendFiles(int64_t& mid, int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout = 0);
 	
 	//-- Async Method
-	void sendFiles(int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
+	void sendFiles(int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
 
-发送多人文件消息
+Send File To Multiple Users
 
-参数:
+Parameters:
 
 + `fromUid` 
 
-  发送者用户id
+  sender user id
 
 + `toUids` 
 
-  接收者用户id集合
+  receiver user id set
 
 + `mtype` 
 
-  消息类型，mtype <= 50，系统保留使用，一般有特殊含义，业务使用 超过50的mtype
+  message type ,refer [RTM Structures](Structures.md)
 
 + `fileData` 
 
-  文件内容
+  file content 
 
 + `fileName` 
 
-  文件名字
+  file name
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数modifyTime,  服务器返回的时间戳
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数modifyTime,  服务器返回的时间戳
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter mid, message id
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter mid, message id
 
 
 
 #### SendGroupFile
 
 	//-- Sync Method
-	int32_t sendGroupFile(int32_t& modifyTime, int64_t fromUid, int64_t groupId, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout = 0);
+	int32_t sendGroupFile(int64_t& mid, int64_t fromUid, int64_t groupId, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout = 0);
 	
 	//-- Async Method
-	void sendGroupFile(int64_t fromUid, int64_t groupId, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
+	void sendGroupFile(int64_t fromUid, int64_t groupId, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
 
-发送群组文件消息
+Send Group File
 
-参数:
+Parameters:
 
 + `fromUid` 
 
-  发送者用户id
+  sender user id
 
 + `groupId` 
 
-  群组id
+  group id
 
 + `mtype` 
 
-  消息类型，mtype <= 50，系统保留使用，一般有特殊含义，业务使用 超过50的mtype
+  message type ,refer [RTM Structures](Structures.md)
 
 + `fileData` 
 
-  文件内容
+  file content
 
 + `fileName` 
 
-  文件名字
+  file name
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数modifyTime,  服务器返回的时间戳
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数modifyTime,  服务器返回的时间戳
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter mid, message id
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter mid, message id
 
 
 
 #### SendRoomFile
 
 	//-- Sync Method
-	int32_t sendRoomFile(int32_t& modifyTime, int64_t fromUid, int64_t roomId, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout = 0);
+	int32_t sendRoomFile(int64_t& mid, int64_t fromUid, int64_t roomId, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout = 0);
 	
 	//-- Async Method
-	void sendRoomFile(int64_t fromUid, int64_t roomId, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
+	void sendRoomFile(int64_t fromUid, int64_t roomId, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
 
-发送房间文件消息
+Send Room File
 
-参数:
+Parameters:
 
 + `fromUid` 
 
-  发送者用户id
+  sender user id
 
 + `roomId` 
 
-  房间id
+  room id
 
 + `mtype` 
 
-  消息类型，mtype <= 50，系统保留使用，一般有特殊含义，业务使用 超过50的mtype
+  message type ,refer [RTM Structures](Structures.md)
 
 + `fileData` 
 
-  文件内容
+  file content
 
 + `fileName` 
 
-  文件名字
+  file name
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数modifyTime,  服务器返回的时间戳
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数modifyTime,  服务器返回的时间戳
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter mid, message id
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter mid, message id
 
 
 
 #### BroadcastFile
 
 	//-- Sync Method
-	int32_t broadcastFile(int32_t& modifyTime, int64_t fromUid, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout = 0);
+	int32_t broadcastFile(int64_t& mid, int64_t fromUid, int8_t mtype, const string& fileData, const string& fileName, int32_t timeout = 0);
 	
 	//-- Async Method
-	void broadcastFile(int64_t fromUid, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
+	void broadcastFile(int64_t fromUid, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
 
-发送广播消息
+Send Broadcast File
 
-参数:
+Parameters:
 
 + `fromUid` 
 
-  发送者用户id
+  sender user id
 
 + `mtype` 
 
-  消息类型，mtype <= 50，系统保留使用，一般有特殊含义，业务使用 超过50的mtype
+  message type ,refer [RTM Structures](Structures.md)
 
 + `fileData` 
 
-  文件内容
+  file content
 
 + `fileName` 
 
-  文件名字
+  file name
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数modifyTime,  服务器返回的时间戳
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数modifyTime,  服务器返回的时间戳
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter mid, message id
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter mid, message id
 
 

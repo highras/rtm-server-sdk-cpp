@@ -2,13 +2,14 @@
 
 using namespace rtm;
 
-FPQuestPtr RTMServerClient::_getSendMessageQuest(int64_t from, int64_t to, int8_t mtype, const string& message, const string& attrs)
+FPQuestPtr RTMServerClient::_getSendMessageQuest(int64_t from, int64_t to, int8_t mtype, const string& message, const string& attrs, int64_t& mid)
 {
     int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
     _makeSignAndSalt(ts, "sendmsg", sign, salt);
 
+    mid = MidGenerator::genMid();
     FPQWriter qw(10, "sendmsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
@@ -17,51 +18,44 @@ FPQuestPtr RTMServerClient::_getSendMessageQuest(int64_t from, int64_t to, int8_
     qw.param("mtype", mtype);
     qw.param("from", from);
     qw.param("to", to);
-    qw.param("mid", MidGenerator::genMid());
+    qw.param("mid", mid);
     qw.param("msg", message);
     qw.param("attrs", attrs);
     return qw.take();
 }
 
-int32_t RTMServerClient::sendMessage(int32_t& modifyTime, int64_t fromUid, int64_t toUid, int8_t mtype, const string& message, const string& attrs, int32_t timeout)
+int32_t RTMServerClient::sendMessage(int64_t& mid, int64_t fromUid, int64_t toUid, int8_t mtype, const string& message, const string& attrs, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendMessageQuest(fromUid, toUid, mtype, message, attrs);  
+    FPQuestPtr quest = _getSendMessageQuest(fromUid, toUid, mtype, message, attrs, mid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
+    _checkAnswerError(answer, result);
     return result.errorCode;
 }
 
-void RTMServerClient::sendMessage(int64_t fromUid, int64_t toUid, int8_t mtype, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::sendMessage(int64_t fromUid, int64_t toUid, int8_t mtype, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendMessageQuest(fromUid, toUid, mtype, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+    int64_t mid = 0;
+    FPQuestPtr quest = _getSendMessageQuest(fromUid, toUid, mtype, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
+        _checkAnswerError(answer, result, errorCode);
+        callback(mid, result.errorCode);
     }, timeout);
 
     if (!status)
         callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
 }
 
-FPQuestPtr RTMServerClient::_getSendMessagesQuest(int64_t from, const set<int64_t>& tos, int8_t mtype, const string& message, const string& attrs)
+FPQuestPtr RTMServerClient::_getSendMessagesQuest(int64_t from, const set<int64_t>& tos, int8_t mtype, const string& message, const string& attrs, int64_t& mid)
 {
     int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
     _makeSignAndSalt(ts, "sendmsgs", sign, salt);
 
+    mid = MidGenerator::genMid();
     FPQWriter qw(10, "sendmsgs");
     qw.param("pid", _pid);
     qw.param("sign", sign);
@@ -70,51 +64,44 @@ FPQuestPtr RTMServerClient::_getSendMessagesQuest(int64_t from, const set<int64_
     qw.param("mtype", mtype);
     qw.param("from", from);
     qw.param("tos", tos);
-    qw.param("mid", MidGenerator::genMid());
+    qw.param("mid", mid);
     qw.param("msg", message);
     qw.param("attrs", attrs);
     return qw.take();
 }
 
-int32_t RTMServerClient::sendMessages(int32_t& modifyTime, int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& message, const string& attrs, int32_t timeout)
+int32_t RTMServerClient::sendMessages(int64_t& mid, int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& message, const string& attrs, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendMessagesQuest(fromUid, toUids, mtype, message, attrs);  
+    FPQuestPtr quest = _getSendMessagesQuest(fromUid, toUids, mtype, message, attrs, mid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
+    _checkAnswerError(answer, result);
     return result.errorCode;
 }
 
-void RTMServerClient::sendMessages(int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::sendMessages(int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendMessagesQuest(fromUid, toUids, mtype, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+    int64_t mid = 0;
+    FPQuestPtr quest = _getSendMessagesQuest(fromUid, toUids, mtype, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
+        _checkAnswerError(answer, result, errorCode);
+        callback(mid, result.errorCode);
     }, timeout);
 
     if (!status)
         callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
 }
 
-FPQuestPtr RTMServerClient::_getSendGroupMessageQuest(int64_t from, int64_t gid, int8_t mtype, const string& message, const string& attrs)
+FPQuestPtr RTMServerClient::_getSendGroupMessageQuest(int64_t from, int64_t gid, int8_t mtype, const string& message, const string& attrs, int64_t& mid)
 {
     int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
     _makeSignAndSalt(ts, "sendgroupmsg", sign, salt);
 
+    mid = MidGenerator::genMid();
     FPQWriter qw(10, "sendgroupmsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
@@ -123,51 +110,44 @@ FPQuestPtr RTMServerClient::_getSendGroupMessageQuest(int64_t from, int64_t gid,
     qw.param("mtype", mtype);
     qw.param("from", from);
     qw.param("gid", gid);
-    qw.param("mid", MidGenerator::genMid());
+    qw.param("mid", mid);
     qw.param("msg", message);
     qw.param("attrs", attrs);
     return qw.take();
 }
 
-int32_t RTMServerClient::sendGroupMessage(int32_t& modifyTime, int64_t fromUid, int64_t groupId, int8_t mtype, const string& message, const string& attrs, int32_t timeout)
+int32_t RTMServerClient::sendGroupMessage(int64_t& mid, int64_t fromUid, int64_t groupId, int8_t mtype, const string& message, const string& attrs, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendGroupMessageQuest(fromUid, groupId, mtype, message, attrs);  
+    FPQuestPtr quest = _getSendGroupMessageQuest(fromUid, groupId, mtype, message, attrs, mid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
+    _checkAnswerError(answer, result);
     return result.errorCode;
 }
 
-void RTMServerClient::sendGroupMessage(int64_t fromUid, int64_t groupId, int8_t mtype, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::sendGroupMessage(int64_t fromUid, int64_t groupId, int8_t mtype, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendGroupMessageQuest(fromUid, groupId, mtype, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+    int64_t mid = 0;
+    FPQuestPtr quest = _getSendGroupMessageQuest(fromUid, groupId, mtype, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
+        _checkAnswerError(answer, result, errorCode);
+        callback(mid, result.errorCode);
     }, timeout);
 
     if (!status)
         callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
 }
 
-FPQuestPtr RTMServerClient::_getSendRoomMessageQuest(int64_t from, int64_t rid, int8_t mtype, const string& message, const string& attrs)
+FPQuestPtr RTMServerClient::_getSendRoomMessageQuest(int64_t from, int64_t rid, int8_t mtype, const string& message, const string& attrs, int64_t& mid)
 {
     int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
     _makeSignAndSalt(ts, "sendroommsg", sign, salt);
 
+    mid = MidGenerator::genMid();
     FPQWriter qw(10, "sendroommsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
@@ -176,51 +156,44 @@ FPQuestPtr RTMServerClient::_getSendRoomMessageQuest(int64_t from, int64_t rid, 
     qw.param("mtype", mtype);
     qw.param("from", from);
     qw.param("rid", rid);
-    qw.param("mid", MidGenerator::genMid());
+    qw.param("mid", mid);
     qw.param("msg", message);
     qw.param("attrs", attrs);
     return qw.take();
 }
 
-int32_t RTMServerClient::sendRoomMessage(int32_t& modifyTime, int64_t fromUid, int64_t roomId, int8_t mtype, const string& message, const string& attrs, int32_t timeout)
+int32_t RTMServerClient::sendRoomMessage(int64_t& mid, int64_t fromUid, int64_t roomId, int8_t mtype, const string& message, const string& attrs, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendRoomMessageQuest(fromUid, roomId, mtype, message, attrs);  
+    FPQuestPtr quest = _getSendRoomMessageQuest(fromUid, roomId, mtype, message, attrs, mid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
+    _checkAnswerError(answer, result);
     return result.errorCode;
 }
 
-void RTMServerClient::sendRoomMessage(int64_t fromUid, int64_t roomId, int8_t mtype, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::sendRoomMessage(int64_t fromUid, int64_t roomId, int8_t mtype, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendRoomMessageQuest(fromUid, roomId, mtype, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+    int64_t mid = 0;
+    FPQuestPtr quest = _getSendRoomMessageQuest(fromUid, roomId, mtype, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
+        _checkAnswerError(answer, result, errorCode);
+        callback(mid, result.errorCode);
     }, timeout);
 
     if (!status)
         callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
 }
 
-FPQuestPtr RTMServerClient::_getBroadcastMessageQuest(int64_t from, int8_t mtype, const string& message, const string& attrs)
+FPQuestPtr RTMServerClient::_getBroadcastMessageQuest(int64_t from, int8_t mtype, const string& message, const string& attrs, int64_t& mid)
 {
     int32_t ts = slack_real_sec();
     string sign;
     int64_t salt;
     _makeSignAndSalt(ts, "broadcastmsg", sign, salt);
 
+    mid = MidGenerator::genMid();
     FPQWriter qw(9, "broadcastmsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
@@ -228,38 +201,30 @@ FPQuestPtr RTMServerClient::_getBroadcastMessageQuest(int64_t from, int8_t mtype
     qw.param("ts", ts);
     qw.param("mtype", mtype);
     qw.param("from", from);
-    qw.param("mid", MidGenerator::genMid());
+    qw.param("mid", mid);
     qw.param("msg", message);
     qw.param("attrs", attrs);
     return qw.take();
 }
 
-int32_t RTMServerClient::broadcastMessage(int32_t& modifyTime, int64_t fromUid, int8_t mtype, const string& message, const string& attrs, int32_t timeout)
+int32_t RTMServerClient::broadcastMessage(int64_t& mid, int64_t fromUid, int8_t mtype, const string& message, const string& attrs, int32_t timeout)
 {
-    FPQuestPtr quest = _getBroadcastMessageQuest(fromUid, mtype, message, attrs);  
+    FPQuestPtr quest = _getBroadcastMessageQuest(fromUid, mtype, message, attrs, mid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
+    _checkAnswerError(answer, result);
     return result.errorCode;
 }
 
-void RTMServerClient::broadcastMessage(int64_t fromUid, int8_t mtype, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::broadcastMessage(int64_t fromUid, int8_t mtype, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getBroadcastMessageQuest(fromUid, mtype, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+    int64_t mid = 0;
+    FPQuestPtr quest = _getBroadcastMessageQuest(fromUid, mtype, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
+        _checkAnswerError(answer, result, errorCode);
+        callback(mid, result.errorCode);
     }, timeout);
 
     if (!status)
@@ -336,12 +301,8 @@ HistoryMessageResult RTMServerClient::_buildHistoryMessageResult(int64_t toId, F
         historyMsg.attrs = msg.attrs;
         historyMsg.modifiedTime = msg.mtime;
 
-        if (historyMsg.messageType == AudioChatMType) {
-            historyMsg.audioInfo = buildAudioInfo(historyMsg.message);
-
-            if (historyMsg.audioInfo != nullptr)
-                historyMsg.message = historyMsg.audioInfo->recognizedText;
-        }
+        if (checkFileMessageType(historyMsg.messageType)) 
+            buildFileInfo(historyMsg);
 
         result.messages.push_back(historyMsg);
     }
@@ -553,6 +514,35 @@ FPQuestPtr RTMServerClient::_getGetMessageQuest(int64_t mid, int64_t from, int64
     return qw.take();
 }
 
+FPQuestPtr RTMServerClient::_getGetMessageNumQuest(int8_t type, int64_t xid, set<int8_t> mtypes, int64_t begin, int64_t end)
+{
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "getmsgnum", sign, salt);
+    int32_t size = 9;
+    if (mtypes.empty())
+        size -= 1;
+    if (begin == 0)
+        size -= 1;
+    if (end == 0)
+        size -= 1;
+    FPQWriter qw(size, "getmsgnum");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("type", type);
+    qw.param("xid", xid);
+    if (!mtypes.empty())
+        qw.param("mtypes", mtypes);
+    if (begin != 0)
+        qw.param("begin", begin);
+    if (end != 0)
+        qw.param("end", end);
+    return qw.take();
+}
+
 RetrievedMessage RTMServerClient::_buildRetrievedMessage(FPAnswerPtr answer)
 {
     RetrievedMessage retrievedMessage;
@@ -562,6 +552,8 @@ RetrievedMessage RTMServerClient::_buildRetrievedMessage(FPAnswerPtr answer)
     retrievedMessage.message = ar.getString("msg");
     retrievedMessage.attrs = ar.getString("attrs");
     retrievedMessage.modifiedTime = ar.getInt("mtime");
+    if (checkFileMessageType(retrievedMessage.messageType))
+        buildFileInfo(retrievedMessage);
     return retrievedMessage;
 }
 
@@ -590,6 +582,42 @@ void RTMServerClient::getMessage(int64_t mid, int64_t fromUid, int64_t toId, Mes
     if (!status)
         callback(RetrievedMessage(), FPNN_EC_CORE_INVALID_CONNECTION);
 }
+
+int32_t RTMServerClient::getMessageNum(int32_t& senderId, int32_t& messageNum, MessageCategory messageCategory, int64_t userId, set<int8_t> messageTypes, int64_t begin, int64_t end, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetMessageNumQuest((int8_t)messageCategory, userId, messageTypes, begin, end);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    QuestResult result;
+    if (!_checkAnswerError(answer, result))
+    {
+        FPAReader ar(answer);
+        senderId = ar.getInt("sender");
+        messageNum = ar.getInt("num");
+    }
+    return result.errorCode;
+}
+
+void RTMServerClient::getMessageNum(MessageCategory messageCategory, int64_t userId, std::function<void (int32_t senderId, int32_t messageNum, int32_t errorCode)> callback, set<int8_t> messageTypes, int64_t begin, int64_t end, int32_t timeout)
+{
+    FPQuestPtr quest = _getGetMessageNumQuest((int8_t)messageCategory, userId, messageTypes, begin, end);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+            QuestResult result;
+            int32_t senderId = 0;
+            int32_t messageNum = 0;
+            if (!_checkAnswerError(answer, result))
+            {
+                FPAReader ar(answer);
+                senderId = ar.getInt("sender");
+                messageNum = ar.getInt("num");
+            }
+            callback(senderId, messageNum, result.errorCode);
+    },timeout);
+
+    if (!status)
+        callback(0, 0, FPNN_EC_CORE_INVALID_CONNECTION);
+}
+ 
 
 FPQuestPtr RTMServerClient::_getDeleteMessageQuest(int64_t mid, int64_t from, int64_t xid, int8_t type)
 {

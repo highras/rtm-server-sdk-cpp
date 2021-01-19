@@ -14,176 +14,248 @@
 	//-- Async Method
 	void translate(const string& text, TranslateLanguage destinationLanguage, std::function<void (TranslatedInfo translatedInfo, int32_t errorCode)> callback, TranslateLanguage sourceLanguage = None, TranslateType type = Chat, ProfanityType profanity = Off, int64_t userId = 0, int32_t timeout = 0);
 
-实时翻译
+Translate text to target language
 
-参数:
+Parameters:
 
 + `text` 
 
-  要翻译的文本
+  the text need to be translated
 
 + `destinationLanguage` 
 
-  目标语言，参考：  [RTM Structures](Structures.md)
+  target language, refer [RTM Structures](Structures.md)
 
 + `sourceLanguage` 
 
-  原始语言，参考：  [RTM Structures](Structures.md)
+  source language, refer [RTM Structures](Structures.md)
 
 + `type` 
 
-  翻译的类别，参考：  [RTM Structures](Structures.md)
+  tranlste type, chat or mail, refer [RTM Structures](Structures.md)
 
 + `profanity` 
 
-  敏感词过滤的类别，参考：  [RTM Structures](Structures.md)
+  profanity filter action, refer [RTM Structures](Structures.md)
 
 + `userId` 
 
-  用户id
+  user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  *  输出参数translatedInfo, 翻译结果，参考：  [RTM Structures](Structures.md)
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数translatedInfo, 翻译结果，参考：  [RTM Structures](Structures.md)
++ Sync method returns a int value, FPNN_EC_OK for success
+  *  output parameter translatedInfo, translation result, refer : [RTM Structures](Structures.md)
++ Async methond returns nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter translatedInfo, translation result, refer : [RTM Structures](Structures.md)
 
+#### SpeechToText
 
+  // -- Sync Method
+  int32_t speechToText(string& resultText, string& resultLanguage, const string& audio, int32_t autoType, const string& language, const string codec = "", int32_t sampleRate = 0, int64_t userId = 0, int32_t timeout = 120);
+  // -- Async Method
+  void speechToText(const string& audio, int32_t audioType, const string& language, std::function<void (string resultText, string resultLanguage, int32_t errorCode)> callback, const string codec = "", int32_t sampleRate = 0, int64_t userId = 0, int32_t timeout = 120);
 
-#### Profanity
+Speech Recognition, convert speech to text
 
-	//-- Sync Method
-	int32_t profanity(string& resultText, vector<string>& classification, const string& text, bool classify = false, int64_t userId = 0, int32_t timeout = 0);
-	
-	//-- Sync Method
-	void profanity(const string& text, std::function<void (string resultText, vector<string> classification, int32_t errorCode)> callback, bool classify = false, int64_t userId = 0, int32_t timeout = 0);
-
-敏感词过滤
-
-参数:
-
-+ `text` 
-
-  原始文本
-
-+ `classify` 
-
-  是否进行分类
-
-+ `userId` 
-
-  用户id
-
-+ `int timeout`
-
-  超时时间(秒)，默认0(使用全局设置)
-
-
-返回值 & 输出参数:
-
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数resultText, 过滤结果
-  * 输出参数classification, 分类结果
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数resultText, 过滤结果
-  * 参数classification, 分类结果
-
-
-
-#### Transcribe
-
-	//-- Sync Method
-	int32_t transcribe(string& resultText, string& resultLanguage, const string& audio, int64_t userId = 0, bool profanityFilter = false, int32_t timeout = 0);
-	
-	//-- Async Method
-	void transcribe(const string& audio, std::function<void (string resultText, string resultLanguage, int32_t errorCode)> callback, int64_t userId = 0, bool profanityFilter = false, int32_t timeout = 0);
-
-语音转文字
-
-参数:
+Parameters:
 
 + `audio` 
 
-  语音私有二进制数据
+  audio content
+
++ `audioType` 
+
+  audio type, 1 for url, 2 for audio content
+
++ `language` 
+
+  source language, refer [RTM Structures](Structures.md)
+
++ `codec` 
+
+  audio codec
+
++ `sampleRate` 
+
+  audioSampleRate
 
 + `userId` 
 
-  用户id
-
-+ `profanityFilter` 
-
-  是否进行敏感词过滤
+  user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 120
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数resultText, 识别结果
-  * 输出参数resultLanguage, 识别的语言
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数resultText, 识别结果
-  * 参数resultLanguage, 识别的语言
++ Sync method returns a int value, FPNN_EC_OK for success
+  *  output parameter resultText
+  *  output parameter resultLanguage, refer : [RTM Structures](Structures.md)
++ Async methond returns nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  *  output parameter resultText
+  *  output parameter resultLanguage, refer : [RTM Structures](Structures.md)
 
+#### TextCheck
 
+  // -- Sync Method
+  int32_t textCheck(TextCheckResult& result, const string& text, int64_t userId = 0, int32_t timeout = 120);
+  // -- Async Method
+  void textCheck(const string& text, std::function<void (TextCheckResult result, int32_t errorCode)> callback, int64_t userId = 0, int32_t timeout = 120);
 
-#### TranscribeMessage
+Text Check 
 
-	//-- Sync Method
-	int32_t transcribeMessage(string& resultText, string& resultLanguage, int64_t fromUid, int64_t mid, int64_t toId, MessageCategory messageCategory, bool profanityFilter = false, int32_t timeout = 0);
-	
-	//-- Async Method
-	void transcribeMessage(int64_t fromUid, int64_t mid, int64_t toId, MessageCategory messageCategory, std::function<void (string resultText, string resultLanguage, int32_t errorCode)> callback, bool profanityFilter = false, int32_t timeout = 0);
+Parameters:
 
-语音消息识别
++ `text` 
 
-参数:
+  The text need to be check.
 
-+ `fromUid` 
++ `userId` 
 
-  用户id
-
-+ `mid` 
-
-  消息id
-
-+ `toId` 
-
-  groupId/roomId/userId
-
-+ messageCategory
-
-  消息类型
-
-+ profanityFilter
-
-  是否进行敏感词过滤
+  user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 120
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数resultText, 识别结果
-  * 输出参数resultLanguage, 识别的语言
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数resultText, 识别结果
-  * 参数resultLanguage, 识别的语言
++ Sync method returns a int value, FPNN_EC_OK for success
+  *  output parameter result, TextCheckResult refer : [RTM Structures](Structures.md)
++ Async methond returns nothing：
+  *  output parameter errorCode, FPNN_EC_OK for success
+  *  output parameter result, TextCheckResult refer : [RTM Structures](Structures.md)
+
+#### ImageCheck
+
+  // -- Sync Method
+  int32_t imageCheck(CheckResult& result, const string& image, int32_t imageType, int64_t userId = 0, int32_t timeout = 120);
+  // -- Async Method
+  void imageCheck(const string& image, int32_t imageType, std::function<void (CheckResult result, int32_t errorCode)> callback, int64_t userId = 0, int32_t timeout = 120);
+
+Image Check
+
+Parameters:
+
++ `image` 
+
+  The image need to be checked.
+
++ `imageType`
+
+  image type, 1 for url, 2 for image content
+
++ `userId` 
+
+  user id
+
++ `int timeout`
+
+  timeout in second，default 120
 
 
+Return Value & Output Parameters
+
++ Sync method returns a int value, FPNN_EC_OK for success
+  *  output parameter result, CheckResult refer : [RTM Structures](Structures.md)
++ Async methond returns nothing：
+  *  output parameter errorCode, FPNN_EC_OK for success
+  *  output parameter result, CheckResult refer : [RTM Structures](Structures.md)
+
+
+#### AudioCheck
+
+  // -- Sync Method
+  int32_t audioCheck(CheckResult& result, const string& audio, int32_t audioType, const string& language, const string codec = "", int32_t sampleRate = 0, int64_t userId = 0, int32_t timeout = 120);
+  // -- Async Method
+  void audioCheck(const string& audio, int32_t audioType, const string& language, std::function<void (CheckResult result, int32_t errorCode)> callback, const string codec = "", int32_t sampleRate = 0, int64_t userId = 0, int32_t timeout = 120);
+
+Audio Check
+
+Parameters:
+
++ `audio` 
+
+  The audio need to be checked
+
++ `audioType` 
+
+  audio type, 1 for url, 2 for audio content
+
++ `language` 
+
+  source language, refer [RTM Structures](Structures.md)
+
++ `codec` 
+
+  audio codec
+
++ `sampleRate` 
+
+  audioSampleRate
+
++ `userId` 
+
+  user id
+
++ `int timeout`
+
+  timeout in second，default 120
+
+Return Value & Output Parameters
+
++ Sync method returns a int value, FPNN_EC_OK for success
+  *  output parameter result, CheckResult refer : [RTM Structures](Structures.md)
++ Async methond returns nothing：
+  *  output parameter errorCode, FPNN_EC_OK for success
+  *  output parameter result, CheckResult refer : [RTM Structures](Structures.md)
+
+#### VideoCheck
+
+  // -- Sync Method
+  int32_t videoCheck(CheckResult& result, const string& video, int32_t videoType, const string& videoName, int64_t userId = 0, int32_t timeout = 120);
+  // -- Async Method
+  void videoCheck(const string& video, int32_t videoType, const string& videoName, std::function<void (CheckResult result, int32_t errorCode)> callback, int64_t userId = 0, int32_t timeout = 120);
+
+Video Check
+
+Parameters:
+
++ `video` 
+
+  The video need to be checked
+
++ `videoType` 
+
+  video type, 1 for url, 2 for video content
+
++ `videoName` 
+
+  video name
+
++ `userId` 
+
+  user id
+
++ `int timeout`
+
+  timeout in second，default 120
+
+Return Value & Output Parameters
+
++ Sync method returns a int value, FPNN_EC_OK for success
+  *  output parameter result, CheckResult refer : [RTM Structures](Structures.md)
++ Async methond returns nothing：
+  *  output parameter errorCode, FPNN_EC_OK for success
+  *  output parameter result, CheckResult refer : [RTM Structures](Structures.md)

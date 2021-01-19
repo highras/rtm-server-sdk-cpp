@@ -9,231 +9,231 @@
 #### sendMessage
 
 	//-- Sync Method
-	int32_t sendMessage(int32_t& modifyTime, int64_t fromUid, int64_t toUid, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
+	int32_t sendMessage(int64_t& mid, int64_t fromUid, int64_t toUid, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
 	
 	//-- Async Method
-	void sendMessage(int64_t fromUid, int64_t toUid, int8_t mtype, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
+	void sendMessage(int64_t fromUid, int64_t toUid, int8_t mtype, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
 
-发送P2P消息
+Send P2P Message
 
-参数:
+Parameters:
 
 + `fromUid` 
 
-  发送者用户id
+  sender user id
 
 + `toUid` 
 
-  接收者用户id
+  receiver user id
 
 + `mtype` 
 
-  消息类型，mtype <= 50，系统保留使用，一般有特殊含义，业务使用 超过50的mtype
+  message type ,refer [RTM Structures](Structures.md)
 
 + `message` 
 
-  聊天内容
+  message
 
 + `attrs` 
 
-  附加信息
+  additional information
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数modifyTime,  服务器返回的时间戳
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数modifyTime,  服务器返回的时间戳
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter mid, message id
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter mid, message id
 
 
 
 #### sendMessages
 
 	//-- Sync Method
-	int32_t sendMessages(int32_t& modifyTime, int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
+	int32_t sendMessages(int64_t& mid, int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
 	
 	//-- Async Method
-	void sendMessages(int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
+	void sendMessages(int64_t fromUid, const set<int64_t>& toUids, int8_t mtype, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
 
-发送多人P2P消息
+Send Multiple P2P Messages
 
-参数:
+Parameters:
 
 + `fromUid` 
 
-  发送者用户id
+  sender user id
 
 + `toUids` 
 
-  接收者用户id集合
+  receiver user id set
 
 + `mtype` 
 
-  消息类型，mtype <= 50，系统保留使用，一般有特殊含义，业务使用 超过50的mtype
+  message type ,refer [RTM Structures](Structures.md)
 
 + `message` 
 
-  内容
+  message
 
 + `attrs` 
 
-  附加信息
+  addtional infomation
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数modifyTime,  服务器返回的时间戳
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数modifyTime,  服务器返回的时间戳
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter mid, message id
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter mid, message id
 
 
 
 #### sendGroupChat
 
 	//-- Sync Method
-	int32_t sendGroupMessage(int32_t& modifyTime, int64_t fromUid, int64_t groupId, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
+	int32_t sendGroupMessage(int64_t& mid, int64_t fromUid, int64_t groupId, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
 	
 	//-- Async Method
-	void sendGroupMessage(int64_t fromUid, int64_t groupId, int8_t mtype, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
+	void sendGroupMessage(int64_t fromUid, int64_t groupId, int8_t mtype, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
 
-发送群组消息
+Send Group Chat Message
 
-参数:
+Parameters:
 
 + `fromUid` 
 
-  发送者用户id
+  sender user id
 
 + `groupId` 
 
-  群组id
+  group id
 
 + `mtype` 
 
-  消息类型，mtype <= 50，系统保留使用，一般有特殊含义，业务使用 超过50的mtype
+  message type ,refer [RTM Structures](Structures.md)
 
 + `message` 
 
-  聊天内容
+  message
 
 + `attrs` 
 
-  附加信息
+  additional information
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数modifyTime,  服务器返回的时间戳
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数modifyTime,  服务器返回的时间戳
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter mid, message id
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter mid, message id
 
 
 
 #### sendRoomMessage
 
 	//-- Sync Method
-	int32_t sendRoomMessage(int32_t& modifyTime, int64_t fromUid, int64_t roomId, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
+	int32_t sendRoomMessage(int64_t& mid, int64_t fromUid, int64_t roomId, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
 	
 	//-- Async Method
-	void sendRoomMessage(int64_t fromUid, int64_t roomId, int8_t mtype, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
+	void sendRoomMessage(int64_t fromUid, int64_t roomId, int8_t mtype, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
 
-发送房间消息
+Send Room Message
 
-参数:
+Parameters:
 
 + `fromUid` 
 
-  发送者用户id
+  sender user id
 
 + `roomId` 
 
-  房间id
+  room id
 
 + `mtype` 
 
-  消息类型，mtype <= 50，系统保留使用，一般有特殊含义，业务使用 超过50的mtype
+  message type ,refer [RTM Structures](Structures.md)
 
 + `message` 
 
-  聊天内容
+  message
 
 + `attrs` 
 
-  附加信息
+  additional information
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数modifyTime,  服务器返回的时间戳
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数modifyTime,  服务器返回的时间戳
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter mid, message id
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter mid, message id
 
 
 
 #### broadcastMessage
 
 	//-- Sync Method
-	int32_t broadcastMessage(int32_t& modifyTime, int64_t fromUid, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
+	int32_t broadcastMessage(int64_t& mid, int64_t fromUid, int8_t mtype, const string& message, const string& attrs, int32_t timeout = 0);
 	
 	//-- Async Method
-	void broadcastMessage(int64_t fromUid, int8_t mtype, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout = 0);
+	void broadcastMessage(int64_t fromUid, int8_t mtype, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout = 0);
 
-发送广播消息
+Send Broadcast Message
 
-参数:
+Parameters:
 
 + `fromUid` 
 
-  发送者用户id
+  sender user id
 
 + `mtype` 
 
-  消息类型，mtype <= 50，系统保留使用，一般有特殊含义，业务使用 超过50的mtype
+  message type ,refer [RTM Structures](Structures.md)
 
 + `message` 
 
-  聊天内容
+  message
 
 + `attrs` 
 
-  附加信息
+  additional information
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数modifyTime,  服务器返回的时间戳
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数modifyTime,  服务器返回的时间戳
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter mid, message id
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter mid, message id
 
 
 
@@ -245,54 +245,54 @@
 	//-- Async Method
 	void getGroupMessage(int64_t groupId, bool desc, int16_t count, int64_t beginMsec, int64_t endMsec, int64_t lastId, const set<int8_t>& mtypes, int64_t uid, std::function<void (HistoryMessageResult result, int32_t errorCode)> callback, int32_t timeout = 0);
 
-获取群组历史消息
+Get Group History Messages
 
-参数:
+Parameters:
 
 + `groupId` 
 
-  群组id
+  group id
 
 + `desc` 
 
-  true:  降序排列， false: 升序排列
+  true:  descending， false: ascending
 
 + `count` 
 
-  获取消息的数量
+  message count
 
 + `beginMsec` 
 
-  开始的毫秒时间戳
+  begin time in milliseconds
 
 + `endMsec` 
 
-  结束的毫秒时间戳
+  end time in milliseconds
 
 + `lastId` 
 
-  上次调用返回的最后一条消息的cursorId， 第一次获取传0
+  the cursorId of the last message returned by the last call, the first time returns 0
 
 + `mtypes` 
 
-  获取哪些mtype的集合
+  message type set
 
 + `uid` 
 
-  调用者的用户id
+  caller user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数HistoryMessageResult,  服务器返回历史消息结果
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数HistoryMessageResult,  服务器返回历史消息结果
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter HistoryMessageResult, History Message Result
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter HistoryMessageResult, History Message Result
 
 
 
@@ -304,54 +304,54 @@
 	//-- Async Method
 	void getRoomMessage(int64_t roomId, bool desc, int16_t count, int64_t beginMsec, int64_t endMsec, int64_t lastId, const set<int8_t>& mtypes, int64_t uid, std::function<void (HistoryMessageResult result, int32_t errorCode)> callback, int32_t timeout = 0);
 
-获取房间历史消息
+Get Room History Message
 
-参数:
+Parameters:
 
 + `roomId` 
 
-  房间id
+  room id
 
 + `desc` 
 
-  true:  降序排列， false: 升序排列
+  true:  descending， false: ascending
 
 + `count` 
 
-  获取消息的数量
+  message count
 
 + `beginMsec` 
 
-  开始的毫秒时间戳
+  begin timestamp in milliseconds
 
 + `endMsec` 
 
-  结束的毫秒时间戳
+  end timestamp in milliseconds
 
 + `lastId` 
 
-  上次调用返回的最后一条消息的cursorId， 第一次获取传0
+  the cursorId of the last message returned by the last call, the first time returns 0
 
 + `mtypes` 
 
-  获取哪些mtype的集合
+  message type set
 
 + `uid` 
 
-  调用者的用户id
+  caller user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数HistoryMessageResult,  服务器返回历史消息结果
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数HistoryMessageResult,  服务器返回历史消息结果
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter HistoryMessageResult, History Message Result
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter HistoryMessageResult, History Message Result
 
 
 
@@ -363,50 +363,50 @@
 	//-- Async Method
 	void getBroadcastMessage(bool desc, int16_t count, int64_t beginMsec, int64_t endMsec, int64_t lastId, const set<int8_t>& mtypes, int64_t uid, std::function<void (HistoryMessageResult result, int32_t errorCode)> callback, int32_t timeout = 0);
 
-获取广播历史消息
+Get Broadcast History Message
 
-参数:
+Parameters:
 
 + `desc` 
 
-  true:  降序排列， false: 升序排列
+  true:  descending， false: ascending
 
 + `count` 
 
-  获取消息的数量
+  message count
 
 + `beginMsec` 
 
-  开始的毫秒时间戳
+  begin timestamp in milliseconds
 
 + `endMsec` 
 
-  结束的毫秒时间戳
+  end timestamp in milliseconds
 
 + `lastId` 
 
-  上次调用返回的最后一条消息的cursorId， 第一次获取传0
+  the cursorId of the last message returned by the last call, the first time returns 0
 
 + `mtypes` 
 
-  获取哪些mtype的集合
+  message type set
 
 + `uid` 
 
-  调用者的用户id
+  caller user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数HistoryMessageResult,  服务器返回历史消息结果
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数HistoryMessageResult,  服务器返回历史消息结果
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter HistoryMessageResult, History Message Result
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter HistoryMessageResult, History Message Result
 
 
 
@@ -418,58 +418,58 @@
 	//-- Async Method
 	void getP2PMessage(int64_t userId, int64_t otherUserId, bool desc, int16_t count, int64_t beginMsec, int64_t endMsec, int64_t lastId, const set<int8_t>& mtypes, std::function<void (HistoryMessageResult result, int32_t errorCode)> callback, int32_t timeout = 0);
 
-获取P2P历史消息
+Get P2P History Message
 
-参数:
+Parameters:
 
 + `userId` 
 
-  用户id
+  user id
 
 + `otherUserId` 
 
-  对方用户id
+  target user id
 
 + `desc` 
 
-  true:  降序排列， false: 升序排列
+  true:  descending， false: ascending
 
 + `count` 
 
-  获取消息的数量
+  message count
 
 + `beginMsec` 
 
-  开始的毫秒时间戳
+  begin timestamp in milliseconds
 
 + `endMsec` 
 
-  结束的毫秒时间戳
+  end timestamp in milliseconds
 
 + `lastId` 
 
-  上次调用返回的最后一条消息的cursorId， 第一次获取传0
+  the cursorId of the last message returned by the last call, the first time returns 0
 
 + `mtypes` 
 
-  获取哪些mtype的集合
+  message type set
 
 + `uid` 
 
-  调用者的用户id
+  caller user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数HistoryMessageResult,  服务器返回历史消息结果
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数HistoryMessageResult,  服务器返回历史消息结果
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter HistoryMessageResult, History Message Result
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter HistoryMessageResult, History Message Result
 
 
 
@@ -481,39 +481,80 @@
 	//-- Async Method
 	void getMessage(int64_t mid, int64_t fromUid, int64_t toId, MessageCategory messageCategory, std::function<void (RetrievedMessage retrievedMessage, int32_t errorCode)> callback, int32_t timeout = 0);
 
-获取消息
+Get Message
 
-参数:
+Parameters:
 
 + `mid` 
 
-  消息id
+  message id
 
 + `fromUid` 
 
-  发送者用户id
+  sender user id
 
 + `toId` 
 
-  groupId或roomId或userId
+  groupId or roomId or userId
 
 + `messageCategory` 
 
-  消息类型 参考 [RTM Structures](Structures.md)
+  message type ,refer [RTM Structures](Structures.md)
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数RetrievedMessage,  服务器返回历史消息结果
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数RetrievedMessage,  服务器返回历史消息结果
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output message RetrievedMessage, retrieved message
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output message RetrievedMessage, retrieved message
 
+#### getMessageNum
+
+	//-- Sync Method
+  int32_t getMessageNum(int32_t& senderId, int32_t& messageNum, MessageCategory messageCategory, int64_t userId, set<int8_t> messageTypes = set<int8_t>(), int64_t begin = 0, int64_t end = 0, int32_t timeout = 0);
+
+	//-- Async Method
+  void getMessageNum(MessageCategory messageCategory, int64_t userId, std::function<void (int32_t senderId, int32_t messageNum, int32_t errorCode)> callback, set<int8_t> messageTypes = set<int8_t>(), int64_t begin = 0, int64_t end = 0, int32_t timeout = 0);
+
+Get Message Num
+
+Parameters:
+
++ `messageCategory`
+  message type, GroupMessage and RoomMessage is available, refer [RTM Structures](Structures.md)
+
++ `messageTypes` 
+
+  mesagge type list, return all if messageTypes is empty
+
++ `begin`
+
+  begin timestamp in milliseconds
+
++ `end`
+
+  end timestamp in milliseconds
+
++ `int timeout`
+
+  timeout in second，default 0(global configuration)
+
+
+Return Value & Output Parameters
+
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output message senderId 
+  * output message messageNum
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output message senderId 
+  * output message messageNum
 
 
 #### deleteMessage
@@ -524,34 +565,34 @@
 	//-- Async Method
 	void deleteMessage(int64_t mid, int64_t fromUid, int64_t toId, MessageCategory messageCategory, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-删除消息
+Delete Message
 
-参数:
+Parameters:
 
 + `mid` 
 
-  消息id
+  message id
 
 + `fromUid` 
 
-  发送者用户id
+  sender user id
 
 + `toId` 
 
-  groupId或roomId或userId
+  groupId or roomId or userId
 
 + `messageCategory` 
 
-  消息类型 参考 [RTM Structures](Structures.md)
+  message type, refer [RTM Structures](Structures.md)
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
 

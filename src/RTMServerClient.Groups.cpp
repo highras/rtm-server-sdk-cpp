@@ -273,12 +273,14 @@ FPQuestPtr RTMServerClient::_getAddGroupBanQuest(int64_t gid, int64_t uid, int32
     int64_t salt;
     _makeSignAndSalt(ts, "addgroupban", sign, salt);
 
-    FPQWriter qw(7, "addgroupban");
+    int32_t paramSize = gid == 0 ? 6 : 7;
+    FPQWriter qw(paramSize, "addgroupban");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
     qw.param("ts", ts);
-    qw.param("gid", gid);
+    if (gid != 0)
+        qw.param("gid", gid);
     qw.param("uid", uid);
     qw.param("btime", btime);
     return qw.take();
@@ -314,12 +316,14 @@ FPQuestPtr RTMServerClient::_getRemoveGroupBanQuest(int64_t gid, int64_t uid)
     int64_t salt;
     _makeSignAndSalt(ts, "removegroupban", sign, salt);
 
-    FPQWriter qw(6, "removegroupban");
+    int32_t paramSize = gid == 0 ? 5 : 6;
+    FPQWriter qw(paramSize, "removegroupban");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
     qw.param("ts", ts);
-    qw.param("gid", gid);
+    if (gid != 0)
+        qw.param("gid", gid);
     qw.param("uid", uid);
     return qw.take();
 }

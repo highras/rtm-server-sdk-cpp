@@ -78,7 +78,7 @@ namespace rtm
 
         bool _checkDuplicate(PushMessageType msgType, int64_t from, int64_t to, int64_t mid);
         RTMMessage _buildRTMMessage(const FPReaderPtr args);
-
+        shared_ptr<TranslatedInfo> ProcessChatMessage(const FPReaderPtr args);
     public:
         void setServerMonitor(shared_ptr<RTMServerPushMonitor> serverMonitor) { _serverMonitor = serverMonitor; }
 

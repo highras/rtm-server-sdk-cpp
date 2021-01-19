@@ -2,480 +2,240 @@
 
 using namespace rtm;
 
-int32_t RTMServerClient::sendChat(int32_t& modifyTime, int64_t fromUid, int64_t toUid, const string& message, const string& attrs, int32_t timeout)
+int32_t RTMServerClient::sendChat(int64_t& mid, int64_t fromUid, int64_t toUid, const string& message, const string& attrs, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendMessageQuest(fromUid, toUid, TextChatMType, message, attrs);  
+    FPQuestPtr quest = _getSendMessageQuest(fromUid, toUid, TextChatMType, message, attrs, mid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
+    _checkAnswerError(answer, result);
     return result.errorCode;
 }
 
-void RTMServerClient::sendChat(int64_t fromUid, int64_t toUid, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::sendChat(int64_t fromUid, int64_t toUid, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendMessageQuest(fromUid, toUid, TextChatMType, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+    int64_t mid = 0;
+    FPQuestPtr quest = _getSendMessageQuest(fromUid, toUid, TextChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, errorCode);
+        _checkAnswerError(answer, result, errorCode);
+        callback(mid, errorCode);
     }, timeout);
 
     if (!status)
         callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
 }
 
-int32_t RTMServerClient::sendAudio(int32_t& modifyTime, int64_t fromUid, int64_t toUid, const string& message, const string& attrs, int32_t timeout)
+int32_t RTMServerClient::sendCmd(int64_t& mid, int64_t fromUid, int64_t toUid, const string& message, const string& attrs, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendMessageQuest(fromUid, toUid, AudioChatMType, message, attrs);  
+    FPQuestPtr quest = _getSendMessageQuest(fromUid, toUid, CmdChatMType, message, attrs, mid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
+    _checkAnswerError(answer, result);
     return result.errorCode;
 }
 
-void RTMServerClient::sendAudio(int64_t fromUid, int64_t toUid, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::sendCmd(int64_t fromUid, int64_t toUid, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendMessageQuest(fromUid, toUid, AudioChatMType, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+    int64_t mid = 0;
+    FPQuestPtr quest = _getSendMessageQuest(fromUid, toUid, CmdChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
+        _checkAnswerError(answer, result, errorCode);
+        callback(mid, result.errorCode);
     }, timeout);
 
     if (!status)
         callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
 }
 
-int32_t RTMServerClient::sendCmd(int32_t& modifyTime, int64_t fromUid, int64_t toUid, const string& message, const string& attrs, int32_t timeout)
+int32_t RTMServerClient::sendChats(int64_t& mid, int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendMessageQuest(fromUid, toUid, CmdChatMType, message, attrs);  
+    FPQuestPtr quest = _getSendMessagesQuest(fromUid, toUids, TextChatMType, message, attrs, mid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
+    _checkAnswerError(answer, result);
     return result.errorCode;
 }
 
-void RTMServerClient::sendCmd(int64_t fromUid, int64_t toUid, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::sendChats(int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendMessageQuest(fromUid, toUid, CmdChatMType, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+    int64_t mid = 0;
+    FPQuestPtr quest = _getSendMessagesQuest(fromUid, toUids, TextChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode)) 
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
+        _checkAnswerError(answer, result, errorCode);
+        callback(mid, result.errorCode);
     }, timeout);
 
     if (!status)
         callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
 }
 
-int32_t RTMServerClient::sendChats(int32_t& modifyTime, int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, int32_t timeout)
+int32_t RTMServerClient::sendCmds(int64_t& mid, int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendMessagesQuest(fromUid, toUids, TextChatMType, message, attrs);  
+    FPQuestPtr quest = _getSendMessagesQuest(fromUid, toUids, CmdChatMType, message, attrs, mid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
+    _checkAnswerError(answer, result);
     return result.errorCode;
 }
 
-void RTMServerClient::sendChats(int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::sendCmds(int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendMessagesQuest(fromUid, toUids, TextChatMType, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+    int64_t mid = 0;
+    FPQuestPtr quest = _getSendMessagesQuest(fromUid, toUids, CmdChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
+        _checkAnswerError(answer, result, errorCode);
+        callback(mid, result.errorCode);
     }, timeout);
 
     if (!status)
         callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
 }
 
-int32_t RTMServerClient::sendAudios(int32_t& modifyTime, int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, int32_t timeout)
+int32_t RTMServerClient::sendGroupChat(int64_t& mid, int64_t fromUid, int64_t groupId, const string& message, const string& attrs, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendMessagesQuest(fromUid, toUids, AudioChatMType, message, attrs);  
+    FPQuestPtr quest = _getSendGroupMessageQuest(fromUid, groupId, TextChatMType, message, attrs, mid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
+    _checkAnswerError(answer, result);
     return result.errorCode;
 }
 
-void RTMServerClient::sendAudios(int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::sendGroupChat(int64_t fromUid, int64_t groupId, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendMessagesQuest(fromUid, toUids, AudioChatMType, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+    int64_t mid = 0;
+    FPQuestPtr quest = _getSendGroupMessageQuest(fromUid, groupId, TextChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode)) 
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
+        _checkAnswerError(answer, result, errorCode);
+        callback(mid, result.errorCode);
     }, timeout);
 
     if (!status)
         callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
 }
 
-int32_t RTMServerClient::sendCmds(int32_t& modifyTime, int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, int32_t timeout)
+int32_t RTMServerClient::sendGroupCmd(int64_t& mid, int64_t fromUid, int64_t groupId, const string& message, const string& attrs, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendMessagesQuest(fromUid, toUids, CmdChatMType, message, attrs);  
+    FPQuestPtr quest = _getSendGroupMessageQuest(fromUid, groupId, CmdChatMType, message, attrs, mid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
+    _checkAnswerError(answer, result);
     return result.errorCode;
 }
 
-void RTMServerClient::sendCmds(int64_t fromUid, const set<int64_t>& toUids, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::sendGroupCmd(int64_t fromUid, int64_t groupId, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendMessagesQuest(fromUid, toUids, CmdChatMType, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+    int64_t mid = 0;
+    FPQuestPtr quest = _getSendGroupMessageQuest(fromUid, groupId, CmdChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
+        _checkAnswerError(answer, result, errorCode);
+        callback(mid, result.errorCode);
     }, timeout);
 
     if (!status)
         callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
 }
 
-int32_t RTMServerClient::sendGroupChat(int32_t& modifyTime, int64_t fromUid, int64_t groupId, const string& message, const string& attrs, int32_t timeout)
+int32_t RTMServerClient::sendRoomChat(int64_t& mid, int64_t fromUid, int64_t roomId, const string& message, const string& attrs, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendGroupMessageQuest(fromUid, groupId, TextChatMType, message, attrs);  
+    FPQuestPtr quest = _getSendRoomMessageQuest(fromUid, roomId, TextChatMType, message, attrs, mid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
+    _checkAnswerError(answer, result);
     return result.errorCode;
 }
 
-void RTMServerClient::sendGroupChat(int64_t fromUid, int64_t groupId, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::sendRoomChat(int64_t fromUid, int64_t roomId, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendGroupMessageQuest(fromUid, groupId, TextChatMType, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+    int64_t mid = 0;
+    FPQuestPtr quest = _getSendRoomMessageQuest(fromUid, roomId, TextChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
+        _checkAnswerError(answer, result, errorCode);
+        callback(mid, result.errorCode);
     }, timeout);
 
     if (!status)
         callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
 }
 
-int32_t RTMServerClient::sendGroupAudio(int32_t& modifyTime, int64_t fromUid, int64_t groupId, const string& message, const string& attrs, int32_t timeout)
+int32_t RTMServerClient::sendRoomCmd(int64_t& mid, int64_t fromUid, int64_t roomId, const string& message, const string& attrs, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendGroupMessageQuest(fromUid, groupId, AudioChatMType, message, attrs);  
+    FPQuestPtr quest = _getSendRoomMessageQuest(fromUid, roomId, CmdChatMType, message, attrs, mid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
+    _checkAnswerError(answer, result);
     return result.errorCode;
 }
 
-void RTMServerClient::sendGroupAudio(int64_t fromUid, int64_t groupId, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::sendRoomCmd(int64_t fromUid, int64_t roomId, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendGroupMessageQuest(fromUid, groupId, AudioChatMType, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+    int64_t mid = 0;
+    FPQuestPtr quest = _getSendRoomMessageQuest(fromUid, roomId, CmdChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
+        _checkAnswerError(answer, result, errorCode);
+        callback(mid, result.errorCode);
     }, timeout);
 
     if (!status)
         callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
 }
 
-int32_t RTMServerClient::sendGroupCmd(int32_t& modifyTime, int64_t fromUid, int64_t groupId, const string& message, const string& attrs, int32_t timeout)
+int32_t RTMServerClient::broadcastChat(int64_t& mid, int64_t fromUid, const string& message, const string& attrs,int32_t timeout)
 {
-    FPQuestPtr quest = _getSendGroupMessageQuest(fromUid, groupId, CmdChatMType, message, attrs);  
+    FPQuestPtr quest = _getBroadcastMessageQuest(fromUid, TextChatMType, message, attrs, mid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
+    !_checkAnswerError(answer, result);
     return result.errorCode;
 }
 
-void RTMServerClient::sendGroupCmd(int64_t fromUid, int64_t groupId, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::broadcastChat(int64_t fromUid, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendGroupMessageQuest(fromUid, groupId, CmdChatMType, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+    int64_t mid = 0;
+    FPQuestPtr quest = _getBroadcastMessageQuest(fromUid, TextChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
+        _checkAnswerError(answer, result, errorCode);
+        callback(mid, result.errorCode);
     }, timeout);
 
     if (!status)
         callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
 }
 
-int32_t RTMServerClient::sendRoomChat(int32_t& modifyTime, int64_t fromUid, int64_t roomId, const string& message, const string& attrs, int32_t timeout)
+int32_t RTMServerClient::broadcastCmd(int64_t& mid, int64_t fromUid, const string& message, const string& attrs, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendRoomMessageQuest(fromUid, roomId, TextChatMType, message, attrs);  
+    FPQuestPtr quest = _getBroadcastMessageQuest(fromUid, CmdChatMType, message, attrs, mid);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
+    _checkAnswerError(answer, result);
     return result.errorCode;
 }
 
-void RTMServerClient::sendRoomChat(int64_t fromUid, int64_t roomId, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::broadcastCmd(int64_t fromUid, const string& message, const string& attrs, std::function<void (int64_t mid, int32_t errorCode)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getSendRoomMessageQuest(fromUid, roomId, TextChatMType, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+    int64_t mid = 0;
+    FPQuestPtr quest = _getBroadcastMessageQuest(fromUid, CmdChatMType, message, attrs, mid);
+    bool status = _client->sendQuest(quest, [this, mid, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
-    }, timeout);
-
-    if (!status)
-        callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
-}
-
-int32_t RTMServerClient::sendRoomAudio(int32_t& modifyTime, int64_t fromUid, int64_t roomId, const string& message, const string& attrs, int32_t timeout)
-{
-    FPQuestPtr quest = _getSendRoomMessageQuest(fromUid, roomId, AudioChatMType, message, attrs);  
-    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
-
-    QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
-    return result.errorCode;
-}
-
-void RTMServerClient::sendRoomAudio(int64_t fromUid, int64_t roomId, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
-{
-    FPQuestPtr quest = _getSendRoomMessageQuest(fromUid, roomId, AudioChatMType, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
-        QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
-    }, timeout);
-
-    if (!status)
-        callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
-}
-
-int32_t RTMServerClient::sendRoomCmd(int32_t& modifyTime, int64_t fromUid, int64_t roomId, const string& message, const string& attrs, int32_t timeout)
-{
-    FPQuestPtr quest = _getSendRoomMessageQuest(fromUid, roomId, CmdChatMType, message, attrs);  
-    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
-
-    QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
-    return result.errorCode;
-}
-
-void RTMServerClient::sendRoomCmd(int64_t fromUid, int64_t roomId, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
-{
-    FPQuestPtr quest = _getSendRoomMessageQuest(fromUid, roomId, CmdChatMType, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
-        QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
-    }, timeout);
-
-    if (!status)
-        callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
-}
-
-int32_t RTMServerClient::broadcastChat(int32_t& modifyTime, int64_t fromUid, const string& message, const string& attrs,int32_t timeout)
-{
-    FPQuestPtr quest = _getBroadcastMessageQuest(fromUid, TextChatMType, message, attrs);  
-    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
-
-    QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
-    return result.errorCode;
-}
-
-void RTMServerClient::broadcastChat(int64_t fromUid, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
-{
-    FPQuestPtr quest = _getBroadcastMessageQuest(fromUid, TextChatMType, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
-        QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
-    }, timeout);
-
-    if (!status)
-        callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
-}
-
-int32_t RTMServerClient::broadcastAudio(int32_t& modifyTime, int64_t fromUid, const string& message, const string& attrs, int32_t timeout)
-{
-    FPQuestPtr quest = _getBroadcastMessageQuest(fromUid, AudioChatMType, message, attrs);  
-    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
-
-    QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
-    return result.errorCode;
-}
-
-void RTMServerClient::broadcastAudio(int64_t fromUid, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
-{
-    FPQuestPtr quest = _getBroadcastMessageQuest(fromUid, AudioChatMType, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
-        QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
-    }, timeout);
-
-    if (!status)
-        callback(0, FPNN_EC_CORE_INVALID_CONNECTION);
-}
-
-int32_t RTMServerClient::broadcastCmd(int32_t& modifyTime, int64_t fromUid, const string& message, const string& attrs, int32_t timeout)
-{
-    FPQuestPtr quest = _getBroadcastMessageQuest(fromUid, CmdChatMType, message, attrs);  
-    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
-
-    QuestResult result;
-    if (!_checkAnswerError(answer, result))
-    {
-        FPAReader ar(answer);
-        modifyTime = ar.getInt("mtime");
-    }
-    return result.errorCode;
-}
-
-void RTMServerClient::broadcastCmd(int64_t fromUid, const string& message, const string& attrs, std::function<void (int32_t modifyTime, int32_t errorCode)> callback, int32_t timeout)
-{
-    FPQuestPtr quest = _getBroadcastMessageQuest(fromUid, CmdChatMType, message, attrs);
-    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
-        QuestResult result;
-        int32_t modifyTime = 0;
-        if (!_checkAnswerError(answer, result, errorCode))
-        {
-            FPAReader ar(answer);
-            modifyTime = ar.getInt("mtime");
-        }
-        callback(modifyTime, result.errorCode);
+        _checkAnswerError(answer, result, errorCode);
+        callback(mid, result.errorCode);
     }, timeout);
 
     if (!status)
@@ -668,84 +428,159 @@ void RTMServerClient::profanity(const string& text, std::function<void (string r
         callback("", vector<string>(), FPNN_EC_CORE_INVALID_CONNECTION);
 }
 
-FPQuestPtr RTMServerClient::_getTranscribeQuest(const string& audio, int64_t uid, bool profanityFilter)
+FPQuestPtr RTMServerClient::_getSpeechToTextQuest(const string& audio, int32_t audioType, const string& language, const string& codec, int32_t sampleRate, int64_t userId)
 {
+    int32_t size = 10;
+    if (codec.empty())
+        size -= 1;
+    if (sampleRate <= 0)
+        size -= 1;
+    if (userId <= 0)
+        size -= 1;
+
     int32_t ts = slack_real_sec(); 
     string sign;
     int64_t salt;
-    _makeSignAndSalt(ts, "transcribe", sign, salt);
+    _makeSignAndSalt(ts, "speech2text", sign, salt);
 
-    int32_t size = 6;
-    if (uid > 0)
-        ++size;
-
-    FPQWriter qw(size, "transcribe");
+    FPQWriter qw(size, "speech2text");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
     qw.param("ts", ts);
     qw.param("audio", audio);
-    qw.param("profanityFilter", profanityFilter);
-
-    if (uid > 0)
-        qw.param("uid", uid);
-
+    qw.param("type", audioType);
+    qw.param("lang", language);
+    if (!codec.empty())
+        qw.param("codec", codec);
+    if (sampleRate > 0)
+        qw.param("srate", sampleRate);
+    if (userId > 0)
+        qw.param("uid", userId);
+ 
     return qw.take();
 }
 
-FPQuestPtr RTMServerClient::_getTranscribeMessageQuest(int64_t from, int64_t mid, int64_t toId, int8_t type, bool profanityFilter)
+FPQuestPtr RTMServerClient::_getTextCheckQuest(const string& text, int64_t userId)
 {
+    int32_t size = 6;
+    if (userId <= 0)
+        size -= 1;
+
     int32_t ts = slack_real_sec(); 
     string sign;
     int64_t salt;
-    _makeSignAndSalt(ts, "stranscribe", sign, salt);
+    _makeSignAndSalt(ts, "tcheck", sign, salt);
 
-    FPQWriter qw(9, "stranscribe");
+    FPQWriter qw(size, "tcheck");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
     qw.param("ts", ts);
-    qw.param("from", from);
-    qw.param("mid", mid);
-    qw.param("xid", toId);
-    qw.param("type", type);
-    qw.param("profanityFilter", profanityFilter);
+    qw.param("text", text);
+    if (userId > 0)
+        qw.param("uid", userId);
+ 
     return qw.take();
 }
 
-bool RTMServerClient::_getTranscribeCache(const char* buffer, size_t length, string& text, string& lang) 
+FPQuestPtr RTMServerClient::_getImageCheckQuest(const string& image, int32_t imageType, int64_t userId)
 {
-    if (length < 8)
-		return false;
-    int8_t infoDataCount = uint8_t(*(buffer + 3));
-    if (infoDataCount == 0)
-        return false;
-    uint32_t sectionLength = uint32_t(*(buffer + 4)) 
-                            | (uint32_t(*(buffer + 5)) << 8) 
-                            | (uint32_t(*(buffer + 6)) << 16) 
-                            | (uint32_t(*(buffer + 7)) << 24);
-    if (sectionLength + 8 >= length)
-        return false;
-    string payload = string(buffer + 8, sectionLength);
-    FPReaderPtr reader(new FPReader(payload));
-    text = reader->getString("rtext");
-    lang = reader->getString("rlang");
-    return text.size() && lang.size();
+    int32_t size = 7;
+    if (userId <= 0)
+        size -= 1;
+
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "icheck", sign, salt);
+
+    FPQWriter qw(size, "icheck");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("image", image);
+    qw.param("type", imageType);
+    if (userId > 0)
+        qw.param("uid", userId);
+ 
+    return qw.take();
 }
 
-int32_t RTMServerClient::transcribe(string& resultText, string& resultLanguage, const string& audio, int64_t userId, bool profanityFilter, int32_t timeout)
+FPQuestPtr RTMServerClient::_getAudioCheckQuest(const string& audio, int32_t audioType, const string& language, const string& codec, int32_t sampleRate, int64_t userId)
 {
-    if (_getTranscribeCache(audio.c_str(), audio.size(), resultText, resultLanguage)) {
-        if (profanityFilter) {
-            vector<string> classification;
-            int32_t errorCode = profanity(resultText, classification, resultText, false, userId, timeout);
-            return errorCode;
-        } else
-            return FPNN_EC_OK;
-    }
+    int32_t size = 10;
+    if (codec.empty())
+        size -= 1;
+    if (sampleRate <= 0)
+        size -= 1;
+    if (userId <= 0)
+        size -= 1;
 
-    FPQuestPtr quest = _getTranscribeQuest(audio, userId, profanityFilter);
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "acheck", sign, salt);
+
+    FPQWriter qw(size, "acheck");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("audio", audio);
+    qw.param("type", audioType);
+    qw.param("lang", language);
+    if (!codec.empty())
+        qw.param("codec", codec);
+    if (sampleRate > 0)
+        qw.param("srate", sampleRate);
+    if (userId > 0)
+        qw.param("uid", userId);
+ 
+    return qw.take();
+}
+
+FPQuestPtr RTMServerClient::_getVideoCheckQuest(const string& video, int32_t videoType, const string& videoName, int64_t userId)
+{
+    int32_t size = 8;
+    if (userId <= 0)
+        size -= 1;
+
+    int32_t ts = slack_real_sec(); 
+    string sign;
+    int64_t salt;
+    _makeSignAndSalt(ts, "vcheck", sign, salt);
+
+    FPQWriter qw(size, "vcheck");
+    qw.param("pid", _pid);
+    qw.param("sign", sign);
+    qw.param("salt", salt);
+    qw.param("ts", ts);
+    qw.param("video", video);
+    qw.param("type", videoType);
+    qw.param("videoName", videoName);
+    if (userId > 0)
+        qw.param("uid", userId);
+ 
+    return qw.take();
+}
+
+bool RTMServerClient::_checkCheckType(int32_t type)
+{
+    if (type >= 1 || type <= 2)
+        return true;
+    return false;
+}
+
+int32_t RTMServerClient::speechToText(string& resultText, string& resultLanguage, const string& audio, int32_t audioType, const string& language, const string codec, int32_t sampleRate, int64_t userId, int32_t timeout)
+{
+    if (!_checkCheckType(audioType))
+        return RTM_EC_INVALID_PARAMETER;
+
+    FPQuestPtr quest = _getSpeechToTextQuest(audio, audioType, language, codec, sampleRate, userId);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
     QuestResult result;
     if (!_checkAnswerError(answer, result))
     {
@@ -756,71 +591,195 @@ int32_t RTMServerClient::transcribe(string& resultText, string& resultLanguage, 
     return result.errorCode;
 }
 
-void RTMServerClient::transcribe(const string& audio, std::function<void (string resultText, string resultLanguage, int32_t errorCode)> callback, int64_t userId, bool profanityFilter, int32_t timeout)
+void RTMServerClient::speechToText(const string& audio, int32_t audioType, const string& language, std::function<void (string resultText, string resultLanguage, int32_t errorCode)> callback, const string codec, int32_t sampleRate, int64_t userId, int32_t timeout)
 {
-    string resultText, resultLanguage;
-    if (_getTranscribeCache(audio.c_str(), audio.size(), resultText, resultLanguage)) {
-        if (profanityFilter) {
-            profanity(resultText, [callback, resultLanguage](string resultText, vector<string> classification, int32_t errorCode) {
-                if (errorCode == FPNN_EC_OK) {
-                    callback(resultText, resultLanguage, FPNN_EC_OK);
-                    return;
-                } else {
-                    callback("", "", errorCode);
-                    return;
-                }
-            }, false, userId, timeout);
-            return;
-        } else {
-            callback(resultText, resultLanguage, FPNN_EC_OK);
-            return;
-        }
+    if (!_checkCheckType(audioType))
+    {
+        callback("", "", RTM_EC_INVALID_PARAMETER);
+        return;
     }
-
-    FPQuestPtr quest = _getTranscribeQuest(audio, userId, profanityFilter);
+    FPQuestPtr quest = _getSpeechToTextQuest(audio, audioType, language, codec, sampleRate, userId);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
-        string resultText, resultLanguage;
-        if (!_checkAnswerError(answer, result, errorCode)) {
+        string resultText;
+        string resultLanguage;
+        if (!_checkAnswerError(answer, result, errorCode))
+        {
             FPAReader ar(answer);
             resultText = ar.getString("text");
             resultLanguage = ar.getString("lang");
         }
-        callback(resultText, resultLanguage, result.errorCode);
+        callback(resultText, resultLanguage, errorCode);
     }, timeout);
 
     if (!status)
         callback("", "", FPNN_EC_CORE_INVALID_CONNECTION);
 }
 
-int32_t RTMServerClient::transcribeMessage(string& resultText, string& resultLanguage, int64_t fromUid, int64_t mid, int64_t toId, MessageCategory messageCategory, bool profanityFilter, int32_t timeout)
+int32_t RTMServerClient::textCheck(TextCheckResult& result, const string& text, int64_t userId, int32_t timeout)
 {
-    FPQuestPtr quest = _getTranscribeMessageQuest(fromUid, mid, toId, (int8_t)messageCategory, profanityFilter);
+    FPQuestPtr quest = _getTextCheckQuest(text, userId);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
-    QuestResult result;
-    if (!_checkAnswerError(answer, result))
+
+    QuestResult questResult;
+    if (!_checkAnswerError(answer, questResult))
     {
         FPAReader ar(answer);
-        resultText = ar.getString("text");
-        resultLanguage = ar.getString("lang");
+        result.result = ar.wantInt("result");
+        result.text = ar.getString("text");
+        result.tags = ar.get("tags", vector<int32_t>());
+        result.wlist = ar.get("wlist", vector<string>());
     }
-    return result.errorCode;
+    return questResult.errorCode;
 }
 
-void RTMServerClient::transcribeMessage(int64_t fromUid, int64_t mid, int64_t toId, MessageCategory messageCategory, std::function<void (string resultText, string resultLanguage, int32_t errorCode)> callback, bool profanityFilter, int32_t timeout)
+void RTMServerClient::textCheck(const string& text, std::function<void (TextCheckResult result, int32_t errorCode)> callback, int64_t userId, int32_t timeout)
 {
-    FPQuestPtr quest = _getTranscribeMessageQuest(fromUid, mid, toId, (int8_t)messageCategory, profanityFilter);
+    FPQuestPtr quest = _getTextCheckQuest(text, userId);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
-        QuestResult result;
-        string resultText, resultLanguage;
-        if (!_checkAnswerError(answer, result, errorCode)) {
+        QuestResult questResult;
+        TextCheckResult result;
+        if (!_checkAnswerError(answer, questResult, errorCode))
+        {
             FPAReader ar(answer);
-            resultText = ar.getString("text");
-            resultLanguage = ar.getString("lang");
+            result.result = ar.wantInt("result");
+            result.text = ar.getString("text");
+            result.tags = ar.get("tags", vector<int32_t>());
+            result.wlist = ar.get("wlist", vector<string>());
         }
-        callback(resultText, resultLanguage, result.errorCode);
+        callback(result, errorCode);
     }, timeout);
 
     if (!status)
-        callback("", "", FPNN_EC_CORE_INVALID_CONNECTION);
+        callback(TextCheckResult(), FPNN_EC_CORE_INVALID_CONNECTION);
 }
+
+int32_t RTMServerClient::imageCheck(CheckResult& result, const string& image, int32_t imageType, int64_t userId, int32_t timeout)
+{
+    if (!_checkCheckType(imageType))
+        return RTM_EC_INVALID_PARAMETER;
+
+    FPQuestPtr quest = _getImageCheckQuest(image, imageType, userId);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    QuestResult questResult;
+    if (!_checkAnswerError(answer, questResult))
+    {
+        FPAReader ar(answer);
+        result.result = ar.wantInt("result");
+        result.tags = ar.get("tags", vector<int32_t>());
+    }
+    return questResult.errorCode;
+}
+
+void RTMServerClient::imageCheck(const string& image, int32_t imageType, std::function<void (CheckResult result, int32_t errorCode)> callback, int64_t userId, int32_t timeout)
+{
+    if (!_checkCheckType(imageType))
+    {
+        callback(CheckResult(), RTM_EC_INVALID_PARAMETER);
+        return;
+    }
+
+    FPQuestPtr quest = _getImageCheckQuest(image, imageType, userId);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        QuestResult questResult;
+        CheckResult result;
+        if (!_checkAnswerError(answer, questResult, errorCode))
+        {
+            FPAReader ar(answer);
+            result.result = ar.wantInt("result");
+            result.tags = ar.get("tags", vector<int32_t>());
+        }
+        callback(result, errorCode);
+    }, timeout);
+
+    if (!status)
+        callback(CheckResult(), FPNN_EC_CORE_INVALID_CONNECTION);
+}
+
+int32_t RTMServerClient::audioCheck(CheckResult& result, const string& audio, int32_t audioType, const string& language, const string codec, int32_t sampleRate, int64_t userId, int32_t timeout)
+{
+    if (!_checkCheckType(audioType))
+        return RTM_EC_INVALID_PARAMETER;
+
+    FPQuestPtr quest = _getAudioCheckQuest(audio, audioType, language, codec, sampleRate, userId);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    QuestResult questResult;
+    if (!_checkAnswerError(answer, questResult))
+    {
+        FPAReader ar(answer);
+        result.result = ar.wantInt("result");
+        result.tags = ar.get("tags", vector<int32_t>());
+    }
+    return questResult.errorCode;
+}
+
+void RTMServerClient::audioCheck(const string& audio, int32_t audioType, const string& language, std::function<void (CheckResult result, int32_t errorCode)> callback, const string codec, int32_t sampleRate, int64_t userId, int32_t timeout)
+{
+    if (!_checkCheckType(audioType))
+    {
+        callback(CheckResult(), RTM_EC_INVALID_PARAMETER);
+        return;
+    }
+
+    FPQuestPtr quest = _getAudioCheckQuest(audio, audioType, language, codec, sampleRate, userId);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        QuestResult questResult;
+        CheckResult result;
+        if (!_checkAnswerError(answer, questResult, errorCode))
+        {
+            FPAReader ar(answer);
+            result.result = ar.wantInt("result");
+            result.tags = ar.get("tags", vector<int32_t>());
+        }
+        callback(result, errorCode);
+    }, timeout);
+
+    if (!status)
+        callback(CheckResult(), FPNN_EC_CORE_INVALID_CONNECTION);
+}
+
+int32_t RTMServerClient::videoCheck(CheckResult& result, const string& video, int32_t videoType, const string& videoName, int64_t userId, int32_t timeout)
+{
+    if (!_checkCheckType(videoType))
+        return RTM_EC_INVALID_PARAMETER;
+
+    FPQuestPtr quest = _getVideoCheckQuest(video, videoType, videoName, userId);
+    FPAnswerPtr answer = _client->sendQuest(quest, timeout);
+
+    QuestResult questResult;
+    if (!_checkAnswerError(answer, questResult))
+    {
+        FPAReader ar(answer);
+        result.result = ar.wantInt("result");
+        result.tags = ar.get("tags", vector<int32_t>());
+    }
+    return questResult.errorCode;
+}
+
+void RTMServerClient::videoCheck(const string& video, int32_t videoType, const string& videoName, std::function<void (CheckResult result, int32_t errorCode)> callback, int64_t userId, int32_t timeout)
+{
+    if (!_checkCheckType(videoType))
+    {
+        callback(CheckResult(), RTM_EC_INVALID_PARAMETER);
+        return;
+    }
+
+    FPQuestPtr quest = _getVideoCheckQuest(video, videoType, videoName, userId);
+    bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
+        QuestResult questResult;
+        CheckResult result;
+        if (!_checkAnswerError(answer, questResult, errorCode))
+        {
+            FPAReader ar(answer);
+            result.result = ar.wantInt("result");
+            result.tags = ar.get("tags", vector<int32_t>());
+        }
+        callback(result, errorCode);
+    }, timeout);
+
+    if (!status)
+        callback(CheckResult(), FPNN_EC_CORE_INVALID_CONNECTION);
+}
+

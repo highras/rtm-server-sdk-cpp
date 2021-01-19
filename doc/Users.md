@@ -14,26 +14,26 @@
 	//-- Async Method
 	void getOnlineUsers(const set<int64_t>& userIds, std::function<void (set<int64_t> onlineUserIds, int32_t errorCode)> callback, int32_t timeout = 0);
 
-获取在线用户
+Get Online Users
 
-参数:
+Parameters:
 
 + `userIds` 
 
-  用户id集合
+  user id set
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  *  输出参数onlineUserIds,  在线的用户id集合
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数onlineUserIds,  在线的用户id集合
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter onlineUserIds,  online user id set
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter onlineUserIds,  online user id set
 
 
 
@@ -45,28 +45,28 @@
 	//-- Async Method
 	void addProjectBlack(int64_t userId, int32_t blackTime, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-添加项目黑名单
+Add User Into The Project Blacklist
 
-参数:
+Parameters:
 
 + `userId` 
 
-  用户id
+  user id
 
 + `blackTime` 
 
-  封禁时间
+  banned time
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
 
 
 
@@ -78,24 +78,24 @@
 	//-- Async Method
 	void removeProjectBlack(int64_t userId, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-移除项目黑名单
+Remove User Out Of The Project Blacklist
 
-参数:
+Parameters:
 
 + `userId` 
 
-  群组id
+  user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
 
 
 
@@ -107,26 +107,26 @@
 	//-- Async Method
 	void isProjectBlack(int64_t userId, std::function<void (bool isBlack, int32_t errorCode)> callback, int32_t timeout = 0);
 
-判断是否添加了项目黑名单
+Is In The Project Blacklist
 
-参数:
+Parameters:
 
 + `userId` 
 
-  用户id
+  user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数isBlack,  是否在黑名单
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数isBlack,  是否在黑名单
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter isBlack,  is in blacklist
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter isBlack,  is in blacklist
 
 
 
@@ -138,32 +138,32 @@
 	//-- Async Method
 	void setUserInfo(int64_t userId, string* oinfo, string* pinfo, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-设置用户信息
+Set User Information
 
-参数:
+Parameters:
 
 + `userId` 
 
-  用户id
+  user id
 
 + `oinfo` 
 
-  公有信息
+  open information
 
 + `pinfo` 
 
-  私有信息
+  private information 
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
 
 
 
@@ -175,28 +175,29 @@
 	//-- Async Method
 	void getUserInfo(int64_t userId, std::function<void (string oinfo, string pinfo, int32_t errorCode)> callback, int32_t timeout = 0);
 
-获取用户信息
+Get User Information
 
-参数:
+Parameters:
 
 + `userId` 
 
-  用户id
+  group id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数oinfo,  用户的公有信息
-  * 输出参数pinfo,  用户的私有信息
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数oinfo,  用户的公有信息
-  * 参数pinfo,  用户的私有信息
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter oinfo,  public information of the user
+  * output pinfo,  private information of the user
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter oinfo,  public information of the user
+  * output pinfo,  private information of the user
+
 
 
 
@@ -208,23 +209,23 @@
 	//-- Async Method
 	void getUserOpenInfo(const set<int64_t>& userIds, std::function<void (map<string, string> info, int32_t errorCode)> callback, int32_t timeout = 0);
 
-获取用户的公有信息
+Get User Open Info
 
-参数:
+Parameters:
 
 + `userIds` 
 
-  用户id集合
+  user id set
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数info,  用户的公有信息表
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数info,  用户的公有信息表
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter info,  public information of the users
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter info,  public information of the users

@@ -14,28 +14,28 @@
 	//-- Async Method
 	void addFriends(int64_t userId, const set<int64_t>& friends, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-添加好友
+Add Friends
 
-参数:
+Parameters:
 
 + `userId` 
 
-  用户id
+  user id
 
 + `friends` 
 
-  好友用户id
+  friend user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
 
 
 
@@ -47,28 +47,28 @@
 	//-- Async Method
 	void deleteFriends(int64_t userId, const set<int64_t>& friends, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-删除好友
+Delete Friends
 
-参数:
+Parameters:
 
 + `userId` 
 
-  用户id
+  user id
 
 + `friends` 
 
-  好友用户id集合
+  friend user id set
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
 
 
 
@@ -80,26 +80,26 @@
 	//-- Async Method
 	void getFriends(int64_t userId, std::function<void (set<int64_t> friendUserIds, int32_t errorCode)> callback, int32_t timeout = 0);
 
-获取好友
+Get Friend Ids
 
-参数:
+Parameters:
 
 + `userId` 
 
-  用户id
+  user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数friendUserIds,  好友集合
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数friendUserIds,  好友集合
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter friendUserIds, friend user id set
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter friendUserIds, friend user id set
 
 
 
@@ -111,30 +111,30 @@
 	//-- Async Method
 	void isFriend(int64_t userId, int64_t otherUserId, std::function<void (bool isFriend, int32_t errorCode)> callback, int32_t timeout = 0);
 
-判断是否好友
+Check Is Firend
 
-参数:
+Parameters:
 
 + `userId` 
 
-  用户id
+  user id
 
 + `otherUserId` 
 
-  对方用户id
+  target user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数isFriend,  是否为好友
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数isFriend,  是否为好友
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output patameter isFriend,  is friend
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output patameter isFriend,  is friend
 
 
 
@@ -146,30 +146,30 @@
 	//-- Async Method
 	void isFriends(int64_t userId, const set<int64_t>& otherUserIds, std::function<void (set<int64_t> friendUserIds, int32_t errorCode)> callback, int32_t timeout = 0);
 
-发送广播消息
+Check Is Firends
 
-参数:
+Parameters:
 
 + `userId` 
 
-  用户id
+  user id
 
 + `otherUserIds` 
 
-  对方用户id集合
+  target user id set
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数friendUserIds,  好友的用户id集合
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数friendUserIds,  好友的用户id集合
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter friendUserIds,  friend user id set
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter friendUserIds,  friend user id set
 
 
 
@@ -181,28 +181,28 @@
 	//-- Async Method
 	void addBlacks(int64_t userId, const set<int64_t>& blacks, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-添加黑名单
+Add Blacklist
 
-参数:
+Parameters:
 
 + `userId` 
 
-  用户id
+  user id
 
 + `blacks` 
 
-  对方用户id集合
+  target user id set
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
 
 
 
@@ -214,28 +214,28 @@
 	//-- Async Method
 	void deleteBlacks(int64_t userId, const set<int64_t>& blacks, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-添加黑名单
+Delete Blacklist
 
-参数:
+Parameters:
 
 + `userId` 
 
-  用户id
+  user id
 
 + `blacks` 
 
-  对方用户id集合
+  target user id set
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
 
 
 
@@ -247,30 +247,30 @@
 	//-- Async Method
 	void isBlack(int64_t userId, int64_t otherUserId, std::function<void (bool isBlack, int32_t errorCode)> callback, int32_t timeout = 0);
 
-判断是否为黑名单
+Is In Blacklist
 
-参数:
+Parameters:
 
 + `userId` 
 
-  用户id
+  user id
 
 + `otherUserId` 
 
-  对方用户id
+  target user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数isBlack,  是否为黑名单
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数isBlack,  是否为黑名单
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter isBlack,  is in blacklist
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter isBlack,  is in blacklist
 
 
 
@@ -282,30 +282,30 @@
 	//-- Async Method
 	void isBlacks(int64_t userId, const set<int64_t>& otherUserIds, std::function<void (set<int64_t> blackUserIds, int32_t errorCode)> callback, int32_t timeout = 0);
 
-判断是否为黑名单
+Is In Blacklist
 
-参数:
+Parameters:
 
 + `userId` 
 
-  用户id
+  user id
 
 + `otherUserIds` 
 
-  对方用户id集合
+  target user id set
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数blackUserIds,  黑名单用户id集合
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数blackUserIds,  黑名单用户id集合
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter blackUserIds,  user id set in blacklist
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter blackUserIds,  user id set in blacklist
 
 
 
@@ -317,23 +317,23 @@
 	//-- Async Method
 	void getBlacks(int64_t userId, std::function<void (set<int64_t> blackUserIds, int32_t errorCode)> callback, int32_t timeout = 0);
 
-判断是否为黑名单
+Get Blacklist
 
-参数:
+Parameters:
 
 + `userId` 
 
-  用户id
+  user id
 
 + `int timeout`
 
-  超时时间(秒)，默认0(使用全局设置)
+  timeout in second，default 0(global configuration)
 
 
-返回值 & 输出参数:
+Return Value & Output Parameters
 
-+ 同步接口返回值为errorCode，FPNN_EC_OK 为成功，其他值为异常情况
-  * 输出参数blackUserIds,  黑名单用户id集合
-+ 异步接口的lambda参数：
-  * errorCode FPNN_EC_OK 为成功，其他值为异常情况
-  * 参数blackUserIds,  黑名单用户id集合
++ Sync method returns a int value, FPNN_EC_CODE for success
+  * output parameter blackUserIds,  user id set in blacklist
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+  * output parameter blackUserIds,  user id set in blacklist
