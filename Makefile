@@ -3,7 +3,7 @@ FPNN_RELEASE_INCLUDE_PATH = ../fpnn-sdk-cpp/release/include
 
 OBJS_C = 
 
-OBJS_CXX = src/RTMServerClient.o  src/RTMProcessor.o src/RTMServerConfig.o src/RTMServerClient.Chat.o src/RTMServerClient.Data.o src/RTMServerClient.Files.o src/RTMServerClient.Friends.o src/RTMServerClient.Groups.o src/RTMServerClient.Listening.o src/RTMServerClient.Message.o src/RTMServerClient.Room.o src/RTMServerClient.Token.o src/RTMServerClient.Users.o src/RTMServerClient.Device.o
+OBJS_CXX = src/RTMServerClient.o  src/RTMProcessor.o src/RTMServerConfig.o src/RTMServerClient.Chat.o src/RTMServerClient.Data.o src/RTMServerClient.Files.o src/RTMServerClient.Friends.o src/RTMServerClient.Groups.o src/RTMServerClient.Listening.o src/RTMServerClient.Message.o src/RTMServerClient.Room.o src/RTMServerClient.Token.o src/RTMServerClient.Users.o src/RTMServerClient.Device.o src/RTMServerClient.RTC.o src/RTMMidGenerator.o
 
 # Static 
 LIBRTM_A = librtm.a

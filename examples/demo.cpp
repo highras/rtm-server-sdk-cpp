@@ -224,10 +224,10 @@ void testToken(RTMServerClientPtr client)
         }
     });
 
-    errorCode = client->kickout(123456, "");
+    errorCode = client->kickout(123456);
     isErrorCode("[Sync kickout]", errorCode);
 
-    client->kickout(123456, "", [](int32_t errorCode){
+    client->kickout(123456, [](int32_t errorCode){
         isErrorCode("[Async kickout]", errorCode);
     });
 }
@@ -561,6 +561,79 @@ void testUser(RTMServerClientPtr client)
     });
 }
 
+void testRtc(RTMServerClientPtr client)
+{
+    int32_t errorCode = client->pullIntoVoiceRoom(123456, {123,456});
+    isErrorCode("[Sync pullIntoVoiceRoom]", errorCode);
+
+    client->pullIntoVoiceRoom(123456, {135,246}, [](int32_t errorCode){
+        isErrorCode("[Async pullIntoVoiceRoom]", errorCode);
+    });
+
+    errorCode = client->inviteUserIntoVoiceRoom(123456, {123,456}, 111);
+    isErrorCode("[Sync inviteUserIntoVoiceRoom]", errorCode);
+
+    client->inviteUserIntoVoiceRoom(123456, {135,246}, 111, [](int32_t errorCode){
+        isErrorCode("[Async inviteUserIntoVoiceRoom]", errorCode);
+    });
+
+    set<int64_t> roomIds;
+    errorCode = client->getVoiceRoomList(roomIds);
+    if (!isErrorCode("[Sync getVoiceRoomList]", errorCode))
+        cout << "rids size: " << roomIds.size() << endl;
+
+    roomIds.clear();
+    client->getVoiceRoomList([](set<int64_t> roomIds, int32_t errorCode){
+        if(!isErrorCode("[Async getVoiceRoomList]", errorCode))
+            cout << "rids size: " << roomIds.size() << endl;
+    });
+
+    set<int64_t> uids;
+    set<int64_t> managers;
+    errorCode = client->getVoiceRoomMembers(uids, managers, 123456);
+    if (!isErrorCode("[Sync getVoiceRoomMembers]", errorCode))
+        cout << "uids size: " << uids.size() << ", managers size: " << managers.size() << endl;
+
+    uids.clear();
+    managers.clear();
+    client->getVoiceRoomMembers(123456, [](set<int64_t> uids, set<int64_t> managers, int32_t errorCode){
+        if(!isErrorCode("[Async getVoiceRoomMembers]", errorCode))
+            cout << "uids size: " << uids.size() << ", managers size: " << managers.size() << endl;
+    });
+ 
+    int32_t count = 0;
+    errorCode = client->getVoiceRoomMemberCount(count, 123456);
+    if (!isErrorCode("[Sync getVoiceRoomMemberCount]", errorCode))
+        cout << "count: " << count << endl;
+
+    count = 0;
+    client->getVoiceRoomMemberCount(123456, [](int32_t count, int32_t errorCode){
+        if(!isErrorCode("[Async getVoiceRoomMemberCount]", errorCode))
+            cout << "count: " << count << endl;
+    });
+
+    errorCode = client->setVoiceRoomMicStatus(123456, true);
+    isErrorCode("[Sync setVoiceRoomMicStatus]", errorCode);
+
+    client->setVoiceRoomMicStatus(123456, false, [](int32_t errorCode){
+        isErrorCode("[Async setVoiceRoomMicStatus]", errorCode);
+    });
+
+    errorCode = client->kickoutFromVoiceRoom(123, 123456, 111);
+    isErrorCode("[Sync kickoutFromVoiceRoom]", errorCode);
+
+    client->kickoutFromVoiceRoom(456, 123456, 111, [](int32_t errorCode){
+        isErrorCode("[Async kickoutFromVoiceRoom]", errorCode);
+    }); 
+
+    errorCode = client->closeVoiceRoom(123456);
+    isErrorCode("[Sync closeVoiceRoom]", errorCode);
+
+    client->closeVoiceRoom(123456, [](int32_t errorCode){
+        isErrorCode("[Async closeVoiceRoom]", errorCode);
+    }); 
+}
+
 int main(int argc, const char** argv)
 {
     RTMServerClientPtr client(new RTMServerClient(11000001, "ef3617e5-e886-4a4e-9eef-7263c0320628", "161.189.171.91:13315"));
@@ -575,6 +648,7 @@ int main(int argc, const char** argv)
     testGroup(client);
     testRoom(client);
     testUser(client);
+    testRtc(client);
 
     while (true)
         sleep(1);

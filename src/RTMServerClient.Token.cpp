@@ -91,26 +91,25 @@ void RTMServerClient::removeToken(int64_t userId, std::function<void (int32_t er
 
 
 
-FPQuestPtr RTMServerClient::_getKickoutQuest(int64_t uid, const string& ce)
+FPQuestPtr RTMServerClient::_getKickoutQuest(int64_t uid)
 {
     int32_t ts = slack_real_sec(); 
     string sign;
     int64_t salt;
     _makeSignAndSalt(ts, "kickout", sign, salt);
 
-    FPQWriter qw(6, "kickout");
+    FPQWriter qw(5, "kickout");
     qw.param("pid", _pid);
     qw.param("sign", sign);
     qw.param("salt", salt);
     qw.param("ts", ts);
     qw.param("uid", uid);
-    qw.param("ce", ce);
     return qw.take();
 }
 
-int32_t RTMServerClient::kickout(int64_t userId, const string& ce, int32_t timeout)
+int32_t RTMServerClient::kickout(int64_t userId, int32_t timeout)
 {
-    FPQuestPtr quest = _getKickoutQuest(userId, ce);
+    FPQuestPtr quest = _getKickoutQuest(userId);
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
@@ -118,9 +117,9 @@ int32_t RTMServerClient::kickout(int64_t userId, const string& ce, int32_t timeo
     return result.errorCode;
 }
 
-void RTMServerClient::kickout(int64_t userId, const string& ce, std::function<void (int32_t errorCode)> callback, int32_t timeout)
+void RTMServerClient::kickout(int64_t userId, std::function<void (int32_t errorCode)> callback, int32_t timeout)
 {
-    FPQuestPtr quest = _getKickoutQuest(userId, ce);
+    FPQuestPtr quest = _getKickoutQuest(userId);
     bool status = _client->sendQuest(quest, [this, callback](FPAnswerPtr answer, int32_t errorCode) {
         QuestResult result;
         _checkAnswerError(answer, result, errorCode); 

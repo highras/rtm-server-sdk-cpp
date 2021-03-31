@@ -627,7 +627,10 @@ int32_t RTMServerClient::textCheck(TextCheckResult& result, const string& text, 
         FPAReader ar(answer);
         result.result = ar.wantInt("result");
         result.text = ar.getString("text");
-        result.tags = ar.get("tags", vector<int32_t>());
+        vector<string> sTags;
+        sTags = ar.get("tags", sTags);
+        for (string& s : sTags)
+            result.tags.push_back(atoi(s.c_str()));
         result.wlist = ar.get("wlist", vector<string>());
     }
     return questResult.errorCode;
@@ -644,7 +647,10 @@ void RTMServerClient::textCheck(const string& text, std::function<void (TextChec
             FPAReader ar(answer);
             result.result = ar.wantInt("result");
             result.text = ar.getString("text");
-            result.tags = ar.get("tags", vector<int32_t>());
+            vector<string> sTags;
+            sTags = ar.get("tags", sTags);
+            for (string& s : sTags)
+                result.tags.push_back(atoi(s.c_str()));
             result.wlist = ar.get("wlist", vector<string>());
         }
         callback(result, errorCode);
@@ -667,7 +673,10 @@ int32_t RTMServerClient::imageCheck(CheckResult& result, const string& image, in
     {
         FPAReader ar(answer);
         result.result = ar.wantInt("result");
-        result.tags = ar.get("tags", vector<int32_t>());
+        vector<string> sTags;
+        sTags = ar.get("tags", sTags);
+        for (string& s : sTags)
+            result.tags.push_back(atoi(s.c_str()));
     }
     return questResult.errorCode;
 }
@@ -688,7 +697,10 @@ void RTMServerClient::imageCheck(const string& image, int32_t imageType, std::fu
         {
             FPAReader ar(answer);
             result.result = ar.wantInt("result");
-            result.tags = ar.get("tags", vector<int32_t>());
+            vector<string> sTags;
+            sTags = ar.get("tags", sTags);
+            for (string &s : sTags)
+                result.tags.push_back(atoi(s.c_str()));
         }
         callback(result, errorCode);
     }, timeout);
@@ -710,7 +722,10 @@ int32_t RTMServerClient::audioCheck(CheckResult& result, const string& audio, in
     {
         FPAReader ar(answer);
         result.result = ar.wantInt("result");
-        result.tags = ar.get("tags", vector<int32_t>());
+        vector<string> sTags;
+        sTags = ar.get("tags", sTags);
+        for (string &s : sTags)
+            result.tags.push_back(atoi(s.c_str()));
     }
     return questResult.errorCode;
 }
@@ -731,7 +746,10 @@ void RTMServerClient::audioCheck(const string& audio, int32_t audioType, const s
         {
             FPAReader ar(answer);
             result.result = ar.wantInt("result");
-            result.tags = ar.get("tags", vector<int32_t>());
+            vector<string> sTags;
+            sTags = ar.get("tags", sTags);
+            for (string &s : sTags)
+                result.tags.push_back(atoi(s.c_str()));
         }
         callback(result, errorCode);
     }, timeout);
@@ -753,7 +771,10 @@ int32_t RTMServerClient::videoCheck(CheckResult& result, const string& video, in
     {
         FPAReader ar(answer);
         result.result = ar.wantInt("result");
-        result.tags = ar.get("tags", vector<int32_t>());
+        vector<string> sTags;
+        sTags = ar.get("tags", sTags);
+        for (string &s : sTags)
+            result.tags.push_back(atoi(s.c_str()));
     }
     return questResult.errorCode;
 }
@@ -774,7 +795,10 @@ void RTMServerClient::videoCheck(const string& video, int32_t videoType, const s
         {
             FPAReader ar(answer);
             result.result = ar.wantInt("result");
-            result.tags = ar.get("tags", vector<int32_t>());
+            vector<string> sTags;
+            sTags = ar.get("tags", sTags);
+            for (string &s : sTags)
+                result.tags.push_back(atoi(s.c_str()));
         }
         callback(result, errorCode);
     }, timeout);

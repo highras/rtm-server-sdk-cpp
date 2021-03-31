@@ -1,4 +1,5 @@
 #include "RTMServerClient.h"
+#include "RTMMidGenerator.h"
 
 using namespace rtm;
 
@@ -9,7 +10,7 @@ FPQuestPtr RTMServerClient::_getSendMessageQuest(int64_t from, int64_t to, int8_
     int64_t salt;
     _makeSignAndSalt(ts, "sendmsg", sign, salt);
 
-    mid = MidGenerator::genMid();
+    mid = RTMMidGenerator::genMid();
     FPQWriter qw(10, "sendmsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
@@ -55,7 +56,7 @@ FPQuestPtr RTMServerClient::_getSendMessagesQuest(int64_t from, const set<int64_
     int64_t salt;
     _makeSignAndSalt(ts, "sendmsgs", sign, salt);
 
-    mid = MidGenerator::genMid();
+    mid = RTMMidGenerator::genMid();
     FPQWriter qw(10, "sendmsgs");
     qw.param("pid", _pid);
     qw.param("sign", sign);
@@ -101,7 +102,7 @@ FPQuestPtr RTMServerClient::_getSendGroupMessageQuest(int64_t from, int64_t gid,
     int64_t salt;
     _makeSignAndSalt(ts, "sendgroupmsg", sign, salt);
 
-    mid = MidGenerator::genMid();
+    mid = RTMMidGenerator::genMid();
     FPQWriter qw(10, "sendgroupmsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
@@ -147,7 +148,7 @@ FPQuestPtr RTMServerClient::_getSendRoomMessageQuest(int64_t from, int64_t rid, 
     int64_t salt;
     _makeSignAndSalt(ts, "sendroommsg", sign, salt);
 
-    mid = MidGenerator::genMid();
+    mid = RTMMidGenerator::genMid();
     FPQWriter qw(10, "sendroommsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);
@@ -193,7 +194,7 @@ FPQuestPtr RTMServerClient::_getBroadcastMessageQuest(int64_t from, int8_t mtype
     int64_t salt;
     _makeSignAndSalt(ts, "broadcastmsg", sign, salt);
 
-    mid = MidGenerator::genMid();
+    mid = RTMMidGenerator::genMid();
     FPQWriter qw(9, "broadcastmsg");
     qw.param("pid", _pid);
     qw.param("sign", sign);

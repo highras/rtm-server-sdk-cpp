@@ -212,3 +212,9 @@ Please refer [ValueAdded Functions](doc/ValueAdded.md)
 #### Device Functions
 
 Please refer [Device Functions](doc/Device.md)
+
+
+
+#### RealTimeVoice Functions
+
+Please refer [RealTimeVoice Functions](doc/RTC.md)

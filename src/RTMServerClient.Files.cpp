@@ -3,6 +3,7 @@
 #include "document.h"
 #include "writer.h"
 #include "stringbuffer.h"
+#include "RTMMidGenerator.h"
 
 using namespace rtm;
 
@@ -175,7 +176,7 @@ FPQuestPtr RTMServerClient::_getSendFileQuest(const string& token, int64_t from,
         qw.reset(new FPQWriter(7, "broadcastfile"));
     }
 
-    mid = MidGenerator::genMid();
+    mid = RTMMidGenerator::genMid();
     qw->param("pid", _pid);
     qw->param("token", token);
     qw->param("mtype", mtype);

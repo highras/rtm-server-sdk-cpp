@@ -69,10 +69,10 @@ Return Value & Output Parameters
 #### Kickout
 
 	//-- Sync Method
-	int32_t kickout(int64_t userId, const string& ce, int32_t timeout = 0);
+	int32_t kickout(int64_t userId, int32_t timeout = 0);
 	
 	//-- Async Method
-	void kickout(int64_t userId, const string& ce, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+	void kickout(int64_t userId, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
 Kickout User
 
@@ -81,10 +81,6 @@ Parameters:
 + `userId` 
 
   user id
-
-+ `ce` 
-
-  user login endpoint
 
 + `int timeout`
 

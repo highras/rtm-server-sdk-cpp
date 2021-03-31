@@ -15,7 +15,6 @@
 #include "RTMServerConfig.h"
 #include "RTMStructures.h"
 #include "RTMErrorCode.h"
-#include "MidGenerator.h"
 
 namespace rtm 
 {
@@ -223,8 +222,8 @@ namespace rtm
         void deleteMessage(int64_t mid, int64_t fromUid, int64_t toId, MessageCategory messageCategory, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
         int32_t deleteChat(int64_t mid, int64_t fromUid, int64_t toId, MessageCategory messageCategory, int32_t timeout = 0);
         void deleteChat(int64_t mid, int64_t fromUid, int64_t toId, MessageCategory messageCategory, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t kickout(int64_t userId, const string& ce, int32_t timeout = 0);
-        void kickout(int64_t userId, const string& ce, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t kickout(int64_t userId, int32_t timeout = 0);
+        void kickout(int64_t userId, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
         bool loadFile(const string& filePath, string& fileData);
         int32_t sendFile(int64_t& mid, int64_t fromUid, int64_t toUid, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension = "", const map<string, string>& attrs = map<string, string>(), int32_t timeout = 0);
         void sendFile(int64_t fromUid, int64_t toUid, int8_t mtype, const string& fileData, const string& fileName, std::function<void (int64_t mid, int32_t errorCode)> callback, const string& fileExtension = "", const map<string, string>& attrs = map<string, string>(), int32_t timeout = 0);
@@ -280,6 +279,26 @@ namespace rtm
         void audioCheck(const string& audio, int32_t audioType, const string& language, std::function<void (CheckResult result, int32_t errorCode)> callback, const string codec = "", int32_t sampleRate = 0, int64_t userId = 0, int32_t timeout = 120);
         int32_t videoCheck(CheckResult& result, const string& video, int32_t videoType, const string& videoName, int64_t userId = 0, int32_t timeout = 120);
         void videoCheck(const string& video, int32_t videoType, const string& videoName, std::function<void (CheckResult result, int32_t errorCode)> callback, int64_t userId = 0, int32_t timeout = 120);
+
+        //=======================//
+        //          RTC          //
+        //=======================//
+        int32_t inviteUserIntoVoiceRoom(int64_t roomId, const set<int64_t>& toUids, int64_t fromUid, int32_t timeout = 0);
+        void inviteUserIntoVoiceRoom(int64_t roomId, const set<int64_t>& toUids, int64_t fromUid, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t closeVoiceRoom(int64_t roomId, int32_t timeout = 0);
+        void closeVoiceRoom(int64_t roomId, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t kickoutFromVoiceRoom(int64_t uid, int64_t roomId, int64_t fromUid, int32_t timeout = 0);
+        void kickoutFromVoiceRoom(int64_t uid, int64_t roomId, int64_t fromUid, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t getVoiceRoomList(set<int64_t>& roomIds, int32_t timeout = 0);
+        void getVoiceRoomList(std::function<void (set<int64_t> roomIds, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t getVoiceRoomMembers(set<int64_t>& uids, set<int64_t>& managers, int64_t roomId, int32_t timeout = 0);
+        void getVoiceRoomMembers(int64_t roomId, std::function<void (set<int64_t> uids, set<int64_t> managers, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t getVoiceRoomMemberCount(int32_t& count, int64_t roomId, int32_t timeout = 0);
+        void getVoiceRoomMemberCount(int64_t roomId, std::function<void (int32_t count, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t setVoiceRoomMicStatus(int64_t roomId, bool status, int32_t timeout = 0);
+        void setVoiceRoomMicStatus(int64_t roomId, bool status, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t pullIntoVoiceRoom(int64_t roomId, const set<int64_t>& toUids, int32_t timeout = 0);
+        void pullIntoVoiceRoom(int64_t roomId, const set<int64_t>& toUids, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
         static void buildFileInfo(RTMMessage& message);
         static void parseFileMessage(RTMMessage& message);
@@ -341,7 +360,7 @@ namespace rtm
         FPQuestPtr _getGetOptionQuest(int64_t uid);
         FPQuestPtr _getRemoveTokenQuest(int64_t uid);
         FPQuestPtr _getDeleteMessageQuest(int64_t mid, int64_t from, int64_t xid, int8_t type);
-        FPQuestPtr _getKickoutQuest(int64_t uid, const string& ce);
+        FPQuestPtr _getKickoutQuest(int64_t uid);
         FPQuestPtr _getSendFileQuest(const string& token, int64_t from, SendFileInfo info, int64_t to, const set<int64_t>& tos, int64_t gid, int64_t rid, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension, const map<string, string>& attrs, int64_t& mid);
         int32_t _sendFileProcess(int64_t& mid, FileTokenType tokenType, int64_t from, int64_t to, const set<int64_t>& tos, int64_t gid, int64_t rid, int8_t mtype, const string& fileData, const string& fileName, const string& fileExtension, const map<string, string>& attrs = map<string, string>(), int32_t timeout = 120);
         void _sendFileProcess(FileTokenType tokenType, int64_t from, int64_t to, const set<int64_t>& tos, int64_t gid, int64_t rid, int8_t mtype, const string& fileData, const string& fileName, 
@@ -382,6 +401,19 @@ namespace rtm
         FPQuestPtr _getDataSetQuest(int64_t uid, const string& key, const string& value);
         FPQuestPtr _getDataDeleteQuest(int64_t uid, const string& key);
         FPQuestPtr _getDataGetQuest(int64_t uid, const string& key);
+
+        //=======================//
+        //          RTC          //
+        //=======================//
+        FPQuestPtr _getInviteUserIntoVoiceRoom(int64_t roomId, const set<int64_t>& toUids, int64_t fromUid);
+        FPQuestPtr _getCloseVoiceRoom(int64_t roomId);
+        FPQuestPtr _getKickoutFromVoiceRoom(int64_t uid, int64_t roomId, int64_t fromUid);
+        FPQuestPtr _getGetVoiceRoomList();
+        FPQuestPtr _getGetVoiceRoomMembers(int64_t roomId);
+        FPQuestPtr _getGetVoiceRoomMemberCount(int64_t roomId);
+        FPQuestPtr _getSetVoiceRoomMicStatus(int64_t roomId, bool status);
+        FPQuestPtr _getPullIntoVoiceRoom(int64_t roomId, const set<int64_t>& toUids);
+
         void _listenStatusRestoration();
         void _tryReconnect();
         void _regressiveReconnect();

@@ -1,4 +1,5 @@
 #include "RTMServerClient.h"
+#include "RTMMidGenerator.h"
 
 using namespace rtm;
 
@@ -9,7 +10,7 @@ _stop(false), _pid(pid), _secret(secret)
     _isReconnect = false;
     _canReconnect = false;
     _requireClose = false;
-    MidGenerator::init(slack_real_msec());
+    RTMMidGenerator::init();
     _regressiveStatus.connectFailedCount = 0;
     _regressiveStatus.regressiveConnectInterval = _regressiveStrategy.firstIntervalSeconds;
     _client = TCPClient::createClient(endpoint);
@@ -178,7 +179,7 @@ string RTMServerClient::_calcMD5(const string& content)
 
 void RTMServerClient::_makeSignAndSalt(int32_t ts, const string& cmd, string& sign, int64_t& salt)
 {
-    salt = MidGenerator::genMid();
+    salt = RTMMidGenerator::genMid();
     string content = to_string(_pid) + ":" + _secret + ":" + to_string(salt) + ":" + cmd + ":" + to_string(ts);
     sign = _calcMD5(content); 
 }
