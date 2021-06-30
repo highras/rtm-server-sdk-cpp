@@ -563,74 +563,103 @@ void testUser(RTMServerClientPtr client)
 
 void testRtc(RTMServerClientPtr client)
 {
-    int32_t errorCode = client->pullIntoVoiceRoom(123456, {123,456});
-    isErrorCode("[Sync pullIntoVoiceRoom]", errorCode);
+    int32_t errorCode = client->pullIntoRTCRoom(123456, {123,456}, 1);
+    isErrorCode("[Sync pullIntoRTCRoom]", errorCode);
 
-    client->pullIntoVoiceRoom(123456, {135,246}, [](int32_t errorCode){
-        isErrorCode("[Async pullIntoVoiceRoom]", errorCode);
+    client->pullIntoRTCRoom(123456, {135,246}, 2, [](int32_t errorCode){
+        isErrorCode("[Async pullIntoRTCRoom]", errorCode);
     });
 
-    errorCode = client->inviteUserIntoVoiceRoom(123456, {123,456}, 111);
-    isErrorCode("[Sync inviteUserIntoVoiceRoom]", errorCode);
+    errorCode = client->inviteUserIntoRTCRoom(123456, {123,456}, 111);
+    isErrorCode("[Sync inviteUserIntoRTCRoom]", errorCode);
 
-    client->inviteUserIntoVoiceRoom(123456, {135,246}, 111, [](int32_t errorCode){
-        isErrorCode("[Async inviteUserIntoVoiceRoom]", errorCode);
+    client->inviteUserIntoRTCRoom(123456, {135,246}, 111, [](int32_t errorCode){
+        isErrorCode("[Async inviteUserIntoRTCRoom]", errorCode);
     });
 
     set<int64_t> roomIds;
-    errorCode = client->getVoiceRoomList(roomIds);
-    if (!isErrorCode("[Sync getVoiceRoomList]", errorCode))
+    errorCode = client->getRTCRoomList(roomIds);
+    if (!isErrorCode("[Sync getRTCRoomList]", errorCode))
         cout << "rids size: " << roomIds.size() << endl;
 
     roomIds.clear();
-    client->getVoiceRoomList([](set<int64_t> roomIds, int32_t errorCode){
-        if(!isErrorCode("[Async getVoiceRoomList]", errorCode))
+    client->getRTCRoomList([](set<int64_t> roomIds, int32_t errorCode){
+        if(!isErrorCode("[Async getRTCRoomList]", errorCode))
             cout << "rids size: " << roomIds.size() << endl;
     });
 
     set<int64_t> uids;
-    set<int64_t> managers;
-    errorCode = client->getVoiceRoomMembers(uids, managers, 123456);
-    if (!isErrorCode("[Sync getVoiceRoomMembers]", errorCode))
-        cout << "uids size: " << uids.size() << ", managers size: " << managers.size() << endl;
+    set<int64_t> administartors;
+    int64_t owner = 0;
+    errorCode = client->getRTCRoomMembers(uids, administartors, owner, 123456);
+    if (!isErrorCode("[Sync getRTCRoomMembers]", errorCode))
+        cout << "uids size: " << uids.size() << ", administartors size: " << administartors.size() << endl;
 
     uids.clear();
-    managers.clear();
-    client->getVoiceRoomMembers(123456, [](set<int64_t> uids, set<int64_t> managers, int32_t errorCode){
-        if(!isErrorCode("[Async getVoiceRoomMembers]", errorCode))
-            cout << "uids size: " << uids.size() << ", managers size: " << managers.size() << endl;
+    administartors.clear();
+    client->getRTCRoomMembers(123456, [](set<int64_t> uids, set<int64_t> administartors, int64_t owner, int32_t errorCode){
+        if(!isErrorCode("[Async getRTCRoomMembers]", errorCode))
+            cout << "uids size: " << uids.size() << ", administartors size: " << administartors.size() << endl;
     });
  
     int32_t count = 0;
-    errorCode = client->getVoiceRoomMemberCount(count, 123456);
-    if (!isErrorCode("[Sync getVoiceRoomMemberCount]", errorCode))
+    errorCode = client->getRTCRoomMemberCount(count, 123456);
+    if (!isErrorCode("[Sync getRTCRoomMemberCount]", errorCode))
         cout << "count: " << count << endl;
 
     count = 0;
-    client->getVoiceRoomMemberCount(123456, [](int32_t count, int32_t errorCode){
-        if(!isErrorCode("[Async getVoiceRoomMemberCount]", errorCode))
+    client->getRTCRoomMemberCount(123456, [](int32_t count, int32_t errorCode){
+        if(!isErrorCode("[Async getRTCRoomMemberCount]", errorCode))
             cout << "count: " << count << endl;
     });
 
-    errorCode = client->setVoiceRoomMicStatus(123456, true);
-    isErrorCode("[Sync setVoiceRoomMicStatus]", errorCode);
+    errorCode = client->setRTCRoomMicStatus(123456, true);
+    isErrorCode("[Sync setRTCRoomMicStatus]", errorCode);
 
-    client->setVoiceRoomMicStatus(123456, false, [](int32_t errorCode){
-        isErrorCode("[Async setVoiceRoomMicStatus]", errorCode);
+    client->setRTCRoomMicStatus(123456, false, [](int32_t errorCode){
+        isErrorCode("[Async setRTCRoomMicStatus]", errorCode);
     });
 
-    errorCode = client->kickoutFromVoiceRoom(123, 123456, 111);
-    isErrorCode("[Sync kickoutFromVoiceRoom]", errorCode);
+    errorCode = client->adminCommand(123456, {123, 456}, 0);
+    isErrorCode("[Sync adminCommand]", errorCode);
 
-    client->kickoutFromVoiceRoom(456, 123456, 111, [](int32_t errorCode){
-        isErrorCode("[Async kickoutFromVoiceRoom]", errorCode);
+    client->adminCommand(123456, {123, 456}, 1, [](int32_t errorCode){
+        isErrorCode("[Async adminCommand]", errorCode);
+    });
+
+    errorCode = client->adminCommand(123456, {123, 456}, 2);
+    isErrorCode("[Sync adminCommand]", errorCode);
+
+    client->adminCommand(123456, {123, 456}, 3, [](int32_t errorCode){
+        isErrorCode("[Async adminCommand]", errorCode);
+    });
+
+    errorCode = client->adminCommand(123456, {123, 456}, 4);
+    isErrorCode("[Sync adminCommand]", errorCode);
+
+    client->adminCommand(123456, {123, 456}, 5, [](int32_t errorCode){
+        isErrorCode("[Async adminCommand]", errorCode);
+    });
+
+    errorCode = client->adminCommand(123456, {123, 456}, 6);
+    isErrorCode("[Sync adminCommand]", errorCode);
+
+    client->adminCommand(123456, {123, 456}, 7, [](int32_t errorCode){
+        isErrorCode("[Async adminCommand]", errorCode);
+    });
+
+    errorCode = client->kickoutFromRTCRoom(123, 123456, 111);
+    isErrorCode("[Sync kickoutFromRTCRoom]", errorCode);
+
+    client->kickoutFromRTCRoom(456, 123456, 111, [](int32_t errorCode){
+        isErrorCode("[Async kickoutFromRTCRoom]", errorCode);
     }); 
 
-    errorCode = client->closeVoiceRoom(123456);
-    isErrorCode("[Sync closeVoiceRoom]", errorCode);
+    errorCode = client->closeRTCRoom(123456);
+    isErrorCode("[Sync closeRTCRoom]", errorCode);
 
-    client->closeVoiceRoom(123456, [](int32_t errorCode){
-        isErrorCode("[Async closeVoiceRoom]", errorCode);
+    client->closeRTCRoom(123456, [](int32_t errorCode){
+        isErrorCode("[Async closeRTCRoom]", errorCode);
     }); 
 }
 

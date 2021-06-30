@@ -283,22 +283,24 @@ namespace rtm
         //=======================//
         //          RTC          //
         //=======================//
-        int32_t inviteUserIntoVoiceRoom(int64_t roomId, const set<int64_t>& toUids, int64_t fromUid, int32_t timeout = 0);
-        void inviteUserIntoVoiceRoom(int64_t roomId, const set<int64_t>& toUids, int64_t fromUid, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t closeVoiceRoom(int64_t roomId, int32_t timeout = 0);
-        void closeVoiceRoom(int64_t roomId, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t kickoutFromVoiceRoom(int64_t uid, int64_t roomId, int64_t fromUid, int32_t timeout = 0);
-        void kickoutFromVoiceRoom(int64_t uid, int64_t roomId, int64_t fromUid, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t getVoiceRoomList(set<int64_t>& roomIds, int32_t timeout = 0);
-        void getVoiceRoomList(std::function<void (set<int64_t> roomIds, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t getVoiceRoomMembers(set<int64_t>& uids, set<int64_t>& managers, int64_t roomId, int32_t timeout = 0);
-        void getVoiceRoomMembers(int64_t roomId, std::function<void (set<int64_t> uids, set<int64_t> managers, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t getVoiceRoomMemberCount(int32_t& count, int64_t roomId, int32_t timeout = 0);
-        void getVoiceRoomMemberCount(int64_t roomId, std::function<void (int32_t count, int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t setVoiceRoomMicStatus(int64_t roomId, bool status, int32_t timeout = 0);
-        void setVoiceRoomMicStatus(int64_t roomId, bool status, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
-        int32_t pullIntoVoiceRoom(int64_t roomId, const set<int64_t>& toUids, int32_t timeout = 0);
-        void pullIntoVoiceRoom(int64_t roomId, const set<int64_t>& toUids, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t inviteUserIntoRTCRoom(int64_t roomId, const set<int64_t>& toUids, int64_t fromUid, int32_t timeout = 0);
+        void inviteUserIntoRTCRoom(int64_t roomId, const set<int64_t>& toUids, int64_t fromUid, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t closeRTCRoom(int64_t roomId, int32_t timeout = 0);
+        void closeRTCRoom(int64_t roomId, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t kickoutFromRTCRoom(int64_t uid, int64_t roomId, int64_t fromUid, int32_t timeout = 0);
+        void kickoutFromRTCRoom(int64_t uid, int64_t roomId, int64_t fromUid, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t getRTCRoomList(set<int64_t>& roomIds, int32_t timeout = 0);
+        void getRTCRoomList(std::function<void (set<int64_t> roomIds, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t getRTCRoomMembers(set<int64_t>& uids, set<int64_t>& administrators, int64_t& owner, int64_t roomId, int32_t timeout = 0);
+        void getRTCRoomMembers(int64_t roomId, std::function<void (set<int64_t> uids, set<int64_t> administrators, int64_t owner, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t getRTCRoomMemberCount(int32_t& count, int64_t roomId, int32_t timeout = 0);
+        void getRTCRoomMemberCount(int64_t roomId, std::function<void (int32_t count, int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t setRTCRoomMicStatus(int64_t roomId, bool status, int32_t timeout = 0);
+        void setRTCRoomMicStatus(int64_t roomId, bool status, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t pullIntoRTCRoom(int64_t roomId, const set<int64_t>& toUids, int32_t type, int32_t timeout = 0);
+        void pullIntoRTCRoom(int64_t roomId, const set<int64_t>& toUids, int32_t type, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+        int32_t adminCommand(int64_t roomId, const set<int64_t>& uids, int32_t command, int32_t timeout = 0);
+        void adminCommand(int64_t roomId, const set<int64_t>& uids, int32_t command, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
         static void buildFileInfo(RTMMessage& message);
         static void parseFileMessage(RTMMessage& message);
@@ -405,14 +407,15 @@ namespace rtm
         //=======================//
         //          RTC          //
         //=======================//
-        FPQuestPtr _getInviteUserIntoVoiceRoom(int64_t roomId, const set<int64_t>& toUids, int64_t fromUid);
-        FPQuestPtr _getCloseVoiceRoom(int64_t roomId);
-        FPQuestPtr _getKickoutFromVoiceRoom(int64_t uid, int64_t roomId, int64_t fromUid);
-        FPQuestPtr _getGetVoiceRoomList();
-        FPQuestPtr _getGetVoiceRoomMembers(int64_t roomId);
-        FPQuestPtr _getGetVoiceRoomMemberCount(int64_t roomId);
-        FPQuestPtr _getSetVoiceRoomMicStatus(int64_t roomId, bool status);
-        FPQuestPtr _getPullIntoVoiceRoom(int64_t roomId, const set<int64_t>& toUids);
+        FPQuestPtr _getInviteUserIntoRTCRoom(int64_t roomId, const set<int64_t>& toUids, int64_t fromUid);
+        FPQuestPtr _getCloseRTCRoom(int64_t roomId);
+        FPQuestPtr _getKickoutFromRTCRoom(int64_t uid, int64_t roomId, int64_t fromUid);
+        FPQuestPtr _getGetRTCRoomList();
+        FPQuestPtr _getGetRTCRoomMembers(int64_t roomId);
+        FPQuestPtr _getGetRTCRoomMemberCount(int64_t roomId);
+        FPQuestPtr _getSetRTCRoomMicStatus(int64_t roomId, bool status);
+        FPQuestPtr _getPullIntoRTCRoom(int64_t roomId, const set<int64_t>& toUids, int32_t type);
+        FPQuestPtr _getAdminCommand(int64_t roomId, const set<int64_t>& uids, int32_t command);
 
         void _listenStatusRestoration();
         void _tryReconnect();

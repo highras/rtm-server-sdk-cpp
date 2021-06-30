@@ -6,15 +6,15 @@
 
 
 
-#### InviteUserIntoVoiceRoom
+#### InviteUserIntoRTCRoom
 
 	//-- Sync Method
-	int32_t inviteUserIntoVoiceRoom(int64_t roomId, const set<int64_t>& toUids, int64_t fromUid, int32_t timeout = 0);
+	int32_t inviteUserIntoRTCRoom(int64_t roomId, const set<int64_t>& toUids, int64_t fromUid, int32_t timeout = 0);
 	
 	//-- Async Method
-	void inviteUserIntoVoiceRoom(int64_t roomId, const set<int64_t>& toUids, int64_t fromUid, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+	void inviteUserIntoRTCRoom(int64_t roomId, const set<int64_t>& toUids, int64_t fromUid, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-Invite User Into Voice Room
+Invite User Into RTC Room
 
 Parameters:
 
@@ -41,15 +41,15 @@ Return Value & Output Parameters
 + Async method return nothing：
   * output parameter errorCode, FPNN_EC_OK for success
 
-#### CloseVoiceRoom
+#### CloseRTCRoom
 
 	//-- Sync Method
-	int32_t closeVoiceRoom(int64_t roomId, int32_t timeout = 0);
+	int32_t closeRTCRoom(int64_t roomId, int32_t timeout = 0);
 	
 	//-- Async Method
-	void closeVoiceRoom(int64_t roomId, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+	void closeRTCRoom(int64_t roomId, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-Close Voice Room
+Close RTC Room
 
 Parameters:
 
@@ -68,15 +68,15 @@ Return Value & Output Parameters
 + Async method return nothing：
   * output parameter errorCode, FPNN_EC_OK for success
 
-#### KickoutFromVoiceRoom
+#### KickoutFromRTCRoom
 
 	//-- Sync Method
-	int32_t kickoutFromVoiceRoom(int64_t uid, int64_t roomId, int64_t fromUid, int32_t timeout = 0);
+	int32_t kickoutFromRTCRoom(int64_t uid, int64_t roomId, int64_t fromUid, int32_t timeout = 0);
 	
 	//-- Async Method
-	void closeVoiceRoom(int64_t roomId, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+	void closeRTCRoom(int64_t roomId, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-Kickout User from the Voice Room
+Kickout User from the RTC Room
 
 Parameters:
 
@@ -103,15 +103,15 @@ Return Value & Output Parameters
 + Async method return nothing：
   * output parameter errorCode, FPNN_EC_OK for success
 
-#### GetVoiceRoomList
+#### GetRTCRoomList
 
 	//-- Sync Method
-    int32_t getVoiceRoomList(set<int64_t>& roomIds, int32_t timeout = 0);
+    int32_t getRTCRoomList(set<int64_t>& roomIds, int32_t timeout = 0);
 	
 	//-- Async Method
-    void getVoiceRoomList(std::function<void (set<int64_t> roomIds, int32_t errorCode)> callback, int32_t timeout = 0);
+    void getRTCRoomList(std::function<void (set<int64_t> roomIds, int32_t errorCode)> callback, int32_t timeout = 0);
 
-Get List of the Voice Rooms 
+Get List of the RTC Rooms 
 
 Parameters:
 
@@ -128,15 +128,15 @@ Return Value & Output Parameters
   * output parameter errorCode, FPNN_EC_OK for success
   * output parameter roomIds, set of the roomId
 
-#### GetVoiceRoomMembers
+#### GetRTCRoomMembers
 
 	//-- Sync Method
-    int32_t getVoiceRoomMembers(set<int64_t>& uids, set<int64_t>& managers, int64_t roomId, int32_t timeout = 0);
+    int32_t getRTCRoomMembers(set<int64_t>& uids, set<int64_t>& administartors, int64_t roomId, int64_t owner, int32_t timeout = 0);
 	
 	//-- Async Method
-    void getVoiceRoomMembers(int64_t roomId, std::function<void (set<int64_t> uids, set<int64_t> managers, int32_t errorCode)> callback, int32_t timeout = 0);
+    void getRTCRoomMembers(int64_t roomId, std::function<void (set<int64_t> uids, set<int64_t> administartors, int64_t owner, int32_t errorCode)> callback, int32_t timeout = 0);
 
-Get Members of the Voice Room 
+Get Members of the RTC Room 
 
 Parameters:
 
@@ -153,21 +153,23 @@ Return Value & Output Parameters
 
 + Sync method returns a int value, FPNN_EC_CODE for success
   * output parameter uids, set of the members 
-  * output parameter managers, set of the managers 
+  * output parameter administartors, set of the administartors 
+  * output parameter owner, owner of the room
 + Async method return nothing：
   * output parameter errorCode, FPNN_EC_OK for success
   * output parameter uids, set of the members 
-  * output parameter managers, set of the managers 
+  * output parameter administartors, set of the administartors 
+  * output parameter owner, owner of the room
 
-#### GetVoiceRoomMemberCount
+#### GetRTCRoomMemberCount
 
 	//-- Sync Method
-    int32_t getVoiceRoomMemberCount(int32_t& count, int64_t roomId, int32_t timeout = 0);
+    int32_t getRTCRoomMemberCount(int32_t& count, int64_t roomId, int32_t timeout = 0);
 	
 	//-- Async Method
-    void getVoiceRoomMemberCount(int64_t roomId, std::function<void (int32_t count, int32_t errorCode)> callback, int32_t timeout = 0);
+    void getRTCRoomMemberCount(int64_t roomId, std::function<void (int32_t count, int32_t errorCode)> callback, int32_t timeout = 0);
 
-Get Member Count of the Voice Room 
+Get Member Count of the RTC Room 
 
 Parameters:
 
@@ -188,15 +190,15 @@ Return Value & Output Parameters
   * output parameter errorCode, FPNN_EC_OK for success
   * output parameter count, count of the members 
 
-#### SetVoiceRoomMicStatus
+#### SetRTCRoomMicStatus
 
 	//-- Sync Method
-    int32_t setVoiceRoomMicStatus(int64_t roomId, bool status, int32_t timeout = 0);
+    int32_t setRTCRoomMicStatus(int64_t roomId, bool status, int32_t timeout = 0);
 	
 	//-- Async Method
-    void setVoiceRoomMicStatus(int64_t roomId, bool status, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+    void setRTCRoomMicStatus(int64_t roomId, bool status, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-Set the Default Microphone Status of the Voice Room 
+Set the Default Microphone Status of the RTC Room 
 
 Parameters:
 
@@ -219,15 +221,15 @@ Return Value & Output Parameters
 + Async method return nothing：
   * output parameter errorCode, FPNN_EC_OK for success
 
-#### PullIntoVoiceRoom
+#### PullIntoRTCRoom
 
 	//-- Sync Method
-    int32_t pullIntoVoiceRoom(int64_t roomId, const set<int64_t>& toUids, int32_t timeout = 0);
+    int32_t pullIntoRTCRoom(int64_t roomId, const set<int64_t>& toUids, int32_t type, int32_t timeout = 0);
 	
 	//-- Async Method
-    void pullIntoVoiceRoom(int64_t roomId, const set<int64_t>& toUids, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+    void pullIntoRTCRoom(int64_t roomId, const set<int64_t>& toUids, int32_t type, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
 
-Pull User Into the Voice Room
+Pull User Into the RTC Room
 
 Parameters:
 
@@ -238,6 +240,46 @@ Parameters:
 + `toUids`
 
   set of the pulled uids
+
++ `type`
+
+  1 for voice room, 2 for video room
+
++ `int timeout`
+
+  timeout in second，default 0(global configuration)
+
+
+Return Value & Output Parameters
+
++ Sync method returns a int value, FPNN_EC_CODE for success
++ Async method return nothing：
+  * output parameter errorCode, FPNN_EC_OK for success
+
+#### AdminCommand
+
+	//-- Sync Method
+    int32_t adminCommand(int64_t roomId, const set<int64_t>& uids, int32_t command, int32_t timeout = 0);
+	
+	//-- Async Method
+    void adminCommand(int64_t roomId, const set<int64_t>& uids, int32_t command, std::function<void (int32_t errorCode)> callback, int32_t timeout = 0);
+
+Administrator Command Operation
+
+Parameters:
+
++ `roomId` 
+
+  room id
+
++ `toUids`
+
+  set of the pulled uids
+
++ `command`
+
+  type of administrator command
+  Please refer [RTM Structures](doc/Structures.md)
 
 + `int timeout`
 
