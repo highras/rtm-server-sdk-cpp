@@ -27,6 +27,7 @@ struct FileInfo
     int32_t duration;
     bool isRTMAudio;
 };
+```
 
 
 ### CheckResult
