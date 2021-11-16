@@ -73,7 +73,7 @@ namespace rtm
         shared_ptr<RTMServerPushMonitor> _serverMonitor;
         mutex _duplicateCacheLock;
         MessageDuplicateCacheMap* _duplicateCache;
-        std::function<void (const ConnectionInfo& connInfo)> _connectedCallback;
+        std::function<void (const ConnectionInfo& connInfo, bool connected)> _connectedCallback;
         std::function<void (const ConnectionInfo& connInfo, bool closeByError)> _willCloseCallback;
 
         bool _checkDuplicate(PushMessageType msgType, int64_t from, int64_t to, int64_t mid);
@@ -82,7 +82,7 @@ namespace rtm
     public:
         void setServerMonitor(shared_ptr<RTMServerPushMonitor> serverMonitor) { _serverMonitor = serverMonitor; }
 
-        virtual void connected(const ConnectionInfo& connInfo);
+        virtual void connected(const ConnectionInfo& connInfo, bool connected);
         virtual void connectionWillClose(const ConnectionInfo& connInfo, bool closeByError);
         FPAnswerPtr  pushP2PMessageAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
         FPAnswerPtr pushGroupMessageAction(const FPReaderPtr args, const FPQuestPtr quest, const ConnectionInfo& ci);
@@ -93,7 +93,7 @@ namespace rtm
         void rtmConnectedCallback(const string& endpoint, bool connected, bool isReconnect);
         void rtmClosedCallback(const string& endpoint, bool causedByError, bool isReconnect);
         
-        RTMProcessor(int32_t duplicateCacheSize, std::function<void (const ConnectionInfo& connInfo)> connectedCallback, std::function<void (const ConnectionInfo& connInfo, bool closeByError)> willCloseCallback)
+        RTMProcessor(int32_t duplicateCacheSize, std::function<void (const ConnectionInfo& connInfo, bool connected)> connectedCallback, std::function<void (const ConnectionInfo& connInfo, bool closeByError)> willCloseCallback)
         {
             _serverMonitor = nullptr;
             _duplicateCache = new MessageDuplicateCacheMap(duplicateCacheSize);

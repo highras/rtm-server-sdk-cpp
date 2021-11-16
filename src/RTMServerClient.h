@@ -307,7 +307,7 @@ namespace rtm
         static void parseFileAttrs(RTMMessage& message);
         static bool checkFileMessageType(int8_t messageType);
     private:
-        void _connectedCallback(const ConnectionInfo& connInfo);
+        void _connectedCallback(const ConnectionInfo& connInfo, bool connected);
         void _closedCallback(const ConnectionInfo& connInfo, bool closeByError);
         string _calcMD5(const string& content);
         bool _checkAnswerError(FPAnswerPtr answer, QuestResult& result, int32_t errorCode = -1);

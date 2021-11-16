@@ -14,9 +14,9 @@ _stop(false), _pid(pid), _secret(secret)
     _regressiveStatus.connectFailedCount = 0;
     _regressiveStatus.regressiveConnectInterval = _regressiveStrategy.firstIntervalSeconds;
     _client = TCPClient::createClient(endpoint);
-    _processor.reset(new RTMProcessor(RTMServerConfig::globalDuplicateCacheSize, [this](const ConnectionInfo& connInfo) {
+    _processor.reset(new RTMProcessor(RTMServerConfig::globalDuplicateCacheSize, [this](const ConnectionInfo& connInfo, bool connected) {
         _client->setAutoReconnect(false);
-        _connectedCallback(connInfo);
+        _connectedCallback(connInfo, connected);
     }, [this](const ConnectionInfo& connInfo, bool closeByError) {
         _closedCallback(connInfo, closeByError);
     }));
@@ -41,7 +41,7 @@ RTMServerClient::~RTMServerClient()
     }
 }
 
-void RTMServerClient::_connectedCallback(const ConnectionInfo& connInfo)
+void RTMServerClient::_connectedCallback(const ConnectionInfo& connInfo, bool connected)
 {
     lock_guard<mutex> lck(_opLock);
     _canReconnect = true;

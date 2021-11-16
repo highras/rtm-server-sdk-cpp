@@ -14,9 +14,9 @@ bool RTMProcessor::_checkDuplicate(PushMessageType msgType, int64_t from, int64_
     return false;
 }
 
-void RTMProcessor::connected(const ConnectionInfo& connInfo) 
+void RTMProcessor::connected(const ConnectionInfo& connInfo, bool connected) 
 {
-    _connectedCallback(connInfo);
+    _connectedCallback(connInfo, connected);
 }
 
 void RTMProcessor::connectionWillClose(const ConnectionInfo& connInfo, bool closeByError)

@@ -200,7 +200,7 @@ int32_t RTMServerClient::broadcastChat(int64_t& mid, int64_t fromUid, const stri
     FPAnswerPtr answer = _client->sendQuest(quest, timeout);
 
     QuestResult result;
-    !_checkAnswerError(answer, result);
+    _checkAnswerError(answer, result);
     return result.errorCode;
 }
 
@@ -568,7 +568,7 @@ FPQuestPtr RTMServerClient::_getVideoCheckQuest(const string& video, int32_t vid
 
 bool RTMServerClient::_checkCheckType(int32_t type)
 {
-    if (type >= 1 || type <= 2)
+    if (type >= 1 && type <= 2)
         return true;
     return false;
 }
