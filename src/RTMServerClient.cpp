@@ -46,7 +46,7 @@ void RTMServerClient::_connectedCallback(const ConnectionInfo& connInfo, bool co
     lock_guard<mutex> lck(_opLock);
     _canReconnect = true;
     _lastConnectTime = TimeUtil::curr_msec();
-    _processor->rtmConnectedCallback(connInfo.endpoint(), true, _isReconnect);
+    _processor->rtmConnectedCallback(connInfo.endpoint(), connected, _isReconnect);
 }
 
 void RTMServerClient::_closedCallback(const ConnectionInfo& connInfo, bool closeByError)
