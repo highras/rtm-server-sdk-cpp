@@ -14,6 +14,7 @@ _stop(false), _pid(pid), _secret(secret)
     _regressiveStatus.connectFailedCount = 0;
     _regressiveStatus.regressiveConnectInterval = _regressiveStrategy.firstIntervalSeconds;
     _client = TCPClient::createClient(endpoint);
+    _client->keepAlive();
     _processor.reset(new RTMProcessor(RTMServerConfig::globalDuplicateCacheSize, [this](const ConnectionInfo& connInfo, bool connected) {
         _client->setAutoReconnect(false);
         _connectedCallback(connInfo, connected);
